@@ -88,7 +88,6 @@ useEffect(() => {
     });
     
     setDeliveryOptions(mapped);
-    setSelectedDeliveryMethod(mapped[0]);
     
     // Extract all delivery windows for calendar availability
     const deliveryWindows = data.results.map(option => option.delivery);
@@ -121,6 +120,8 @@ const handleDeliveryMethodChange = (deliveryMethod) => {
   } else {
     setShowDeliverySubOptions(false);
     setSelectedDeliverySubOption(null);
+    setShowCalendar(false);
+    setSelectedDate(null);
   }
 };
 
