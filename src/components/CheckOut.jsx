@@ -30,27 +30,73 @@ const paymentMethods = [
 ]
 
 export default function CheckOut() {
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email_address: '',
+    company_name: '',
+    firstLine_address: '',
+    house_apartment_number: '',
+    city: '',
+    country: 'United States',
+    state_province: '',
+    post_code: '',
+    phone_number: '',
+    item_ordered: '',
+    size: '',
+  })
+
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(deliveryMethods[0])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit order')
+      }
+
+      const result = await response.json()
+      console.log('Order submitted successfully:', result)
+    } catch (error) {
+      console.error('Error submitting order:', error.message)
+    }
+  }
 
   return (
     <div className="bg-gray-50">
       <div className="mx-auto max-w-2xl px-4 pt-16 pb-24 sm:px-6 lg:max-w-7xl lg:px-8">
         <h2 className="sr-only">Checkout</h2>
 
-        <form className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+        <form onSubmit={handleSubmit} className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           <div>
             <div>
               <h2 className="text-lg font-medium text-gray-900">Contact information</h2>
 
               <div className="mt-4">
-                <label htmlFor="email-address" className="block text-sm/6 font-medium text-gray-700">
+                <label htmlFor="email_address" className="block text-sm/6 font-medium text-gray-700">
                   Email address
                 </label>
                 <div className="mt-2">
                   <input
-                    id="email-address"
-                    name="email-address"
+                    id="email_address"
+                    name="email_address"
                     type="email"
+                    value={formData.email_address}
+                    onChange={handleChange}
                     autoComplete="email"
                     className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                   />
@@ -63,14 +109,16 @@ export default function CheckOut() {
 
               <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
-                  <label htmlFor="first-name" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="first_name" className="block text-sm/6 font-medium text-gray-700">
                     First name
                   </label>
                   <div className="mt-2">
                     <input
-                      id="first-name"
-                      name="first-name"
+                      id="first_name"
+                      name="first_name"
                       type="text"
+                      value={formData.first_name}
+                      onChange={handleChange}
                       autoComplete="given-name"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -78,14 +126,16 @@ export default function CheckOut() {
                 </div>
 
                 <div>
-                  <label htmlFor="last-name" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="last_name" className="block text-sm/6 font-medium text-gray-700">
                     Last name
                   </label>
                   <div className="mt-2">
                     <input
-                      id="last-name"
-                      name="last-name"
+                      id="last_name"
+                      name="last_name"
                       type="text"
+                      value={formData.last_name}
+                      onChange={handleChange}
                       autoComplete="family-name"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -93,28 +143,32 @@ export default function CheckOut() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="company" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="company_name" className="block text-sm/6 font-medium text-gray-700">
                     Company
                   </label>
                   <div className="mt-2">
                     <input
-                      id="company"
-                      name="company"
+                      id="company_name"
+                      name="company_name"
                       type="text"
+                      value={formData.company_name}
+                      onChange={handleChange}
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="address" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="firstLine_address" className="block text-sm/6 font-medium text-gray-700">
                     Address
                   </label>
                   <div className="mt-2">
                     <input
-                      id="address"
-                      name="address"
+                      id="firstLine_address"
+                      name="firstLine_address"
                       type="text"
+                      value={formData.firstLine_address}
+                      onChange={handleChange}
                       autoComplete="street-address"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -122,14 +176,16 @@ export default function CheckOut() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="apartment" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="house_apartment_number" className="block text-sm/6 font-medium text-gray-700">
                     Apartment, suite, etc.
                   </label>
                   <div className="mt-2">
                     <input
-                      id="apartment"
-                      name="apartment"
+                      id="house_apartment_number"
+                      name="house_apartment_number"
                       type="text"
+                      value={formData.house_apartment_number}
+                      onChange={handleChange}
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
                   </div>
@@ -144,6 +200,8 @@ export default function CheckOut() {
                       id="city"
                       name="city"
                       type="text"
+                      value={formData.city}
+                      onChange={handleChange}
                       autoComplete="address-level2"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -158,6 +216,8 @@ export default function CheckOut() {
                     <select
                       id="country"
                       name="country"
+                      value={formData.country}
+                      onChange={handleChange}
                       autoComplete="country-name"
                       className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     >
@@ -173,14 +233,16 @@ export default function CheckOut() {
                 </div>
 
                 <div>
-                  <label htmlFor="region" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="state_province" className="block text-sm/6 font-medium text-gray-700">
                     State / Province
                   </label>
                   <div className="mt-2">
                     <input
-                      id="region"
-                      name="region"
+                      id="state_province"
+                      name="state_province"
                       type="text"
+                      value={formData.state_province}
+                      onChange={handleChange}
                       autoComplete="address-level1"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -188,14 +250,16 @@ export default function CheckOut() {
                 </div>
 
                 <div>
-                  <label htmlFor="postal-code" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="post_code" className="block text-sm/6 font-medium text-gray-700">
                     Postal code
                   </label>
                   <div className="mt-2">
                     <input
-                      id="postal-code"
-                      name="postal-code"
+                      id="post_code"
+                      name="post_code"
                       type="text"
+                      value={formData.post_code}
+                      onChange={handleChange}
                       autoComplete="postal-code"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -203,14 +267,16 @@ export default function CheckOut() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label htmlFor="phone" className="block text-sm/6 font-medium text-gray-700">
+                  <label htmlFor="phone_number" className="block text-sm/6 font-medium text-gray-700">
                     Phone
                   </label>
                   <div className="mt-2">
                     <input
-                      id="phone"
-                      name="phone"
+                      id="phone_number"
+                      name="phone_number"
                       type="text"
+                      value={formData.phone_number}
+                      onChange={handleChange}
                       autoComplete="tel"
                       className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     />
@@ -431,11 +497,11 @@ export default function CheckOut() {
                   <dd className="text-base font-medium text-gray-900">$75.52</dd>
                 </div>
               </dl>
-
+            
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-                <Link href="/confirmation">
-                <button
-                  type="button"
+              <Link href="/confirmation">
+                  <button
+                  type="submit"
                   className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
                 >
                   Confirm order
