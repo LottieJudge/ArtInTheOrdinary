@@ -180,6 +180,9 @@ const handleDeliveryMethodChange = (deliveryMethod) => {
     setShowDeliverySubOptions(true);
     setSelectedDeliverySubOption(deliverySubOptions[0]);
     setShowCollectionSearch(false); // Hide collection search
+    setPudoOptions([]); // Clear PUDO options
+    setSelectedPudoOption(null); // Clear selected PUDO option
+    setCollectionPostcode(''); // Clear postcode input
   } else if (deliveryMethod.title === 'Local Collection Point') {
     setShowCollectionSearch(true); // Show collection search
     setShowDeliverySubOptions(false);
@@ -192,6 +195,10 @@ const handleDeliveryMethodChange = (deliveryMethod) => {
     setShowCalendar(false);
     setSelectedDate(null);
     setShowCollectionSearch(false); // Hide collection search
+
+    setPudoOptions([]); // Clear PUDO options
+    setSelectedPudoOption(null); // Clear selected PUDO option
+    setCollectionPostcode(''); // Clear postcode input
   }
 };
 
