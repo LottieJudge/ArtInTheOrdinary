@@ -1,11 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+);
+
 export async function POST(req) {
   try {
+    const body = await req.json();
+    console.log('Incoming request body:', body);
     const {
       first_name,
       last_name,
@@ -19,8 +22,8 @@ export async function POST(req) {
       post_code,
       phone_number,
       item_ordered,
-      size
-    } = await req.json()
+      size,
+    } = body;
 
     const { error } = await supabase.from('CustomerInfo').insert([
       {
@@ -36,17 +39,18 @@ export async function POST(req) {
         post_code,
         phone_number,
         item_ordered,
-        size
-      }
-    ])
+        size,
+      },
+    ]);
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+      console.error('Supabase insert error:', error); 
+      return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
 
-    return new Response(JSON.stringify({ success: true }), { status: 200 })
-
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 })
+    console.error('API route error:', error);
+    return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400 });
   }
 }
