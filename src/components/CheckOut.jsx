@@ -167,7 +167,6 @@ const paymentMethods = [
   { id: 'etransfer', title: 'eTransfer' },
 ]
 
-export default function CheckOut() {
   const router = useRouter()
   const [formData, setFormData] = useState({
     first_name: '',
@@ -736,7 +735,6 @@ export default function CheckOut() {
                 >
                   Confirm order
                 </button>
-         
               </div>
             </div>
           </div>
