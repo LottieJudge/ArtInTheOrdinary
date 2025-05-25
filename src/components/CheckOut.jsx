@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { Radio, RadioGroup } from '@headlessui/react'
 import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const products = [
   {
@@ -30,6 +30,7 @@ const paymentMethods = [
 ]
 
 export default function CheckOut() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -71,6 +72,8 @@ export default function CheckOut() {
 
       const result = await response.json()
       console.log('Order submitted successfully:', result)
+
+      router.push('/confirmation')
     } catch (error) {
       console.error('Error submitting order:', error.message)
     }
@@ -499,14 +502,14 @@ export default function CheckOut() {
               </dl>
             
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-              <Link href="/confirmation">
+        
                   <button
                   type="submit"
                   className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
                 >
                   Confirm order
                 </button>
-                </Link>
+         
               </div>
             </div>
           </div>
