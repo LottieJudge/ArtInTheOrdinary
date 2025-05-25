@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { Radio, RadioGroup } from '@headlessui/react'
 import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/navigation'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 const products = [
   {
@@ -20,7 +22,132 @@ const products = [
   // More products...
 ]
 
+//Delivery options/sub-options, collection options
+
+function getDeliveryGroupLabel(groupCode) {
+  switch (groupCode.toUpperCase()) {
+    case 'STANDARD':
+    case 'NOMINATED': 
+    case 'NEXTDAY':
+      return 'Delivery'; // All delivery variants go under "Delivery"
+    case 'IN_STORE':
+      return 'In-Store Collection'; // In-store collection
+    case 'PUDO':
+      return 'Local Collection Point'; // In-store collection
+    default:
+      return groupCode;
+  }
+}
+
+// map component for PUDO options
+
+function MapComponent({ pudoOptions, onSelectPudo, selectedPudo }) {
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const markers = useRef([]);
+
+  useEffect(() => {
+    if (!mapContainer.current || pudoOptions.length === 0) return;
+
+    // Initialize map
+    map.current = new maplibregl.Map({
+  container: mapContainer.current,
+  style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=Z6KWfABzoUTv2ZQgWxlo',
+  center: [-0.1276, 51.5074], // Default to London
+  zoom: 10
+});
+
+    // Add navigation controls
+    map.current.addControl(new maplibregl.NavigationControl());
+
+    // Debug: Log the PUDO data to see what fields are available
+    console.log('PUDO Options:', pudoOptions);
+
+    let markersAdded = 0;
+
+    // Add markers for each PUDO location
+    pudoOptions.forEach((pudo, index) => {
+      if (pudo.lat && pudo.long) {
+        const marker = new maplibregl.Marker()
+          .setLngLat([pudo.long, pudo.lat])
+          .setPopup(
+            new maplibregl.Popup({ offset: 25 })
+              .setHTML(`
+                <div class="p-2">
+                  <h3 class="font-medium">${pudo.storeName}</h3>
+                  <p class="text-sm text-gray-600">${pudo.address}</p>
+                  <p class="text-sm text-gray-500">${pudo.postcode}</p>
+                </div>
+              `)
+          )
+          .addTo(map.current);
+
+          // Add click handler
+        marker.getElement().addEventListener('click', () => {
+          onSelectPudo(pudo);
+        });
+
+        markers.current.push(marker);
+         markersAdded++;
+      } else {
+        console.warn(`PUDO ${index} missing coordinates:`, pudo);
+      }
+    });
+     
+
+    // Fit map to show all markers
+    if (markers.current.length > 0) {
+      const bounds = new maplibregl.LngLatBounds();
+      markers.current.forEach(marker => {
+        bounds.extend(marker.getLngLat());
+      });
+      map.current.fitBounds(bounds, { padding: 50 });
+    }
+
+    return () => {
+      markers.current.forEach(marker => marker.remove());
+      markers.current = [];
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, [pudoOptions, onSelectPudo]);
+
+  // Highlight selected marker
+  useEffect(() => {
+    if (!selectedPudo || !map.current) return;
+
+    markers.current.forEach(marker => {
+      const element = marker.getElement();
+      if (selectedPudo.lat === marker.getLngLat().lat && 
+          selectedPudo.long === marker.getLngLat().lng) {
+        element.style.filter = 'hue-rotate(120deg)'; // Green highlight
+        // Zoom into the selected marker for better street view
+      map.current.flyTo({
+        center: [selectedPudo.long, selectedPudo.lat],
+        zoom: 16, // Higher zoom level to see streets clearly
+        duration: 1000 // Smooth animation duration in milliseconds
+      });
+        
+      } else {
+        element.style.filter = 'none';
+      }
+    });
+  }, [selectedPudo]);
+
+  return (
+    <div 
+      ref={mapContainer} 
+      className="w-full h-64 rounded-lg border border-gray-300"
+      style={{ minHeight: '256px' }}
+    />
+  );
+}
+
 export default function CheckOut() {
+
+// delivery options logic
 
 const [deliveryOptions, setDeliveryOptions] = useState([]);
 const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -29,6 +156,15 @@ const [selectedDeliverySubOption, setSelectedDeliverySubOption] = useState(null)
 const [showCalendar, setShowCalendar] = useState(false);
 const [selectedDate, setSelectedDate] = useState(null);
 
+// PUDO options logic 
+
+const [showCollectionSearch, setShowCollectionSearch] = useState(false);
+const [collectionPostcode, setCollectionPostcode] = useState('');
+const [pudoOptions, setPudoOptions] = useState([]);
+const [isSearching, setIsSearching] = useState(false);
+const [selectedPudoOption, setSelectedPudoOption] = useState(null);
+
+// Delivery sub-options 
 
 const deliverySubOptions = [
   { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
@@ -36,7 +172,79 @@ const deliverySubOptions = [
   { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
 ];
 
-// Generate next 14 days for calendar
+// Handle delivery method change
+const handleDeliveryMethodChange = (deliveryMethod) => {
+  setSelectedDeliveryMethod(deliveryMethod);
+
+ if (deliveryMethod.title === 'Delivery') {
+    setShowDeliverySubOptions(true);
+    setSelectedDeliverySubOption(deliverySubOptions[0]);
+    setShowCollectionSearch(false); // Hide collection search
+  } else if (deliveryMethod.title === 'Local Collection Point') {
+    setShowCollectionSearch(true); // Show collection search
+    setShowDeliverySubOptions(false);
+    setSelectedDeliverySubOption(null);
+    setShowCalendar(false);
+    setSelectedDate(null);
+  } else {
+    setShowDeliverySubOptions(false);
+    setSelectedDeliverySubOption(null);
+    setShowCalendar(false);
+    setSelectedDate(null);
+    setShowCollectionSearch(false); // Hide collection search
+  }
+};
+
+
+// Handlers
+
+// Handle collection postcode change
+const handleCollectionPostcodeChange = (event) => {
+  setCollectionPostcode(event.target.value);
+};
+
+// handle collection postcode search
+const handleCollectionPostcodeSearch = async () => {
+  if (!collectionPostcode.trim()) return;
+    setIsSearching(true);
+  try {
+    const response = await fetch('/api/metapack/pudo-options');
+    const data = await response.json();
+    
+    // For now, just filter by postcode (you can enhance this later)
+    const filteredResults = data.results.filter(pudo => 
+      pudo.postcode.toLowerCase().includes(collectionPostcode.toLowerCase()) ||
+      pudo.address.toLowerCase().includes(collectionPostcode.toLowerCase())
+    );
+    
+    setPudoOptions(filteredResults);
+    console.log('Search results:', filteredResults);
+  } catch (error) {
+    console.error('Error searching PUDO options:', error);
+  } finally {
+    setIsSearching(false);
+  }
+};
+
+// Handle delivery options 
+const handleSubOptionChange = (subOption) => {
+  setSelectedDeliverySubOption(subOption);
+  
+  if (subOption.id === 'nominated') {
+    setShowCalendar(true);
+    // If availableDates is empty, generate them
+    if (availableDates.length === 0) {
+      setAvailableDates(getNext14Days([])); // Generate with default availability
+    }
+  } else {
+    setShowCalendar(false);
+    setSelectedDate(null);
+  }
+};
+
+
+
+// nominated day delivery options (14 days)
 const getNext14Days = (deliveryWindows = []) => {
   const days = [];
   const today = new Date();
@@ -45,7 +253,7 @@ const getNext14Days = (deliveryWindows = []) => {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
 
-    // Check if this date falls within any delivery window
+    
     const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
       const fromDate = new Date(window.from);
       const toDate = new Date(window.to);
@@ -87,7 +295,15 @@ useEffect(() => {
       };
     });
     
-    setDeliveryOptions(mapped);
+   const uniqueOptions = mapped.reduce((acc, current) => {
+      const existingOption = acc.find(option => option.title === current.title);
+      if (!existingOption) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+    
+    setDeliveryOptions(uniqueOptions);
     
     // Extract all delivery windows for calendar availability
     const deliveryWindows = data.results.map(option => option.delivery);
@@ -96,49 +312,6 @@ useEffect(() => {
   fetchDeliveryOptions();
 }, []);
 
-const handleSubOptionChange = (subOption) => {
-  setSelectedDeliverySubOption(subOption);
-  
-  if (subOption.id === 'nominated') {
-    setShowCalendar(true);
-    // If availableDates is empty, generate them
-    if (availableDates.length === 0) {
-      setAvailableDates(getNext14Days([])); // Generate with default availability
-    }
-  } else {
-    setShowCalendar(false);
-    setSelectedDate(null);
-  }
-};
-
-const handleDeliveryMethodChange = (deliveryMethod) => {
-  setSelectedDeliveryMethod(deliveryMethod);
-
-  if (deliveryMethod.title === 'Delivery') {
-    setShowDeliverySubOptions(true);
-    setSelectedDeliverySubOption(deliverySubOptions[0]);
-  } else {
-    setShowDeliverySubOptions(false);
-    setSelectedDeliverySubOption(null);
-    setShowCalendar(false);
-    setSelectedDate(null);
-  }
-};
-
-function getDeliveryGroupLabel(groupCode) {
-  switch (groupCode.toUpperCase()) {
-    case 'STANDARD':
-      return 'Delivery';
-    case 'NOMINATED':
-      return 'Local Collection Point';
-    case 'NEXTDAY':
-      return 'Next Day';
-    case 'PUDO':
-      return 'Click & Collect';
-    default:
-      return groupCode;
-  }
-}
 
 function getDeliveryWindow({ from, to }) {
   if (!from || !to) return '';
@@ -552,8 +725,72 @@ const paymentMethods = [
                 )}
               </fieldset>
             </div>
+{/* local collection point options */}
+            {showCollectionSearch && (
+              <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">Where would you like to collect from?</h3>
+    <p className="text-sm text-gray-600 mb-4">Choose from thousands of collection points nationwide</p>
+    
+    <div className="mt-4">
+      <label htmlFor="collection-postcode" className="block text-sm font-medium text-gray-700 mb-2">
+        Search by town, city or postcode
+      </label>
+      <div className="flex gap-3">
+        <input
+          id="collection-postcode"
+          name="collection-postcode"
+          type="text"
+          value={collectionPostcode}
+          onChange={handleCollectionPostcodeChange}
+          placeholder="e.g. SW1A 1AA"
+          className="flex-1 rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm"
+        />
+        <button
+          type="button"
+          onClick={handleCollectionPostcodeSearch}
+          disabled={isSearching || !collectionPostcode.trim()}
+          className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-2 focus:outline-indigo-600"
+        >
+        {isSearching ? 'Searching...' : 'Search'} 
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-
+{pudoOptions.length > 0 && (
+  <div className="mt-4">
+    <h4 className="text-sm font-medium text-gray-900 mb-3">
+      Found {pudoOptions.length} collection point{pudoOptions.length !== 1 ? 's' : ''}
+    </h4>
+    {/* Map Container */}
+    <div className="mb-4">
+      <MapComponent 
+        pudoOptions={pudoOptions} 
+        onSelectPudo={setSelectedPudoOption}
+        selectedPudo={selectedPudoOption}
+      />
+    </div>
+    <div className="space-y-2 max-h-60 overflow-y-auto">
+      {pudoOptions.map((pudo) => (
+        <div 
+          key={pudo.storeId} 
+          onClick={() => setSelectedPudoOption(pudo)}
+          className={`p-3 border rounded-md cursor-pointer transition-colors ${
+            selectedPudoOption?.storeId === pudo.storeId 
+              ? 'border-indigo-500 bg-indigo-50' 
+              : 'border-gray-200 bg-white hover:bg-gray-50'
+          }`}
+        >
+          <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
+          <p className="text-sm text-gray-600">{pudo.address}</p>
+          <p className="text-sm text-gray-500">{pudo.postcode}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+          
             {/* Payment */}
             <div className="mt-10 border-t border-gray-200 pt-10">
               <h2 className="text-lg font-medium text-gray-900">Payment</h2>
