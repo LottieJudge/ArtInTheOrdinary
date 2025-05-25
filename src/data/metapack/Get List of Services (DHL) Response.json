@@ -1,0 +1,18 @@
+[
+    {
+        "name": "DHL Domestic Express",
+        "code": "DHL11DOMEXP"
+    },
+    {
+        "name": "DHL Economy Select (eu)",
+        "code": "DHL11ECOSELEU"
+    },
+    {
+        "name": "DHL Express Worldwide (doc)",
+        "code": "DHL11EXPINTDOC"
+    },
+    {
+        "name": "DHL Express Worldwide (eu)",
+        "code": "DHL11EXPINTEU"
+    }
+]

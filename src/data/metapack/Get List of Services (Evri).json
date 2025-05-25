@@ -1,0 +1,3 @@
+curl --location 'https://api.sbx.metapack.com/shipping/v1/carriers/HERMESPOS/services' \
+--header 'Authorization: Basic Q2JiUXNwT2U1UFIwdGVncTVFSDl0dmtnaGNRa2tuYUg6TzFyS1FhanZGR2EyN1IwRg==' \
+--data ''

@@ -1,0 +1,3 @@
+curl --location 'https://api.sbx.metapack.com/shipping/v1/manifests/DMM1W3P4W/paperwork' \
+--header 'Authorization: Basic Q2JiUXNwT2U1UFIwdGVncTVFSDl0dmtnaGNRa2tuYUg6TzFyS1FhanZGR2EyN1IwRg==' \
+--data ''

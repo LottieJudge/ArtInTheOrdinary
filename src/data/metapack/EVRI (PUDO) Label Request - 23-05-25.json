@@ -1,0 +1,107 @@
+{
+    "consignment": {
+        "manifestGroupCode": "EVRI_23052025",
+        "measurementUnits": {
+            "weight": "kg",
+            "measurement": "cm",
+            "volume": "ml"
+        },
+        "orders": [
+            {
+                "orderRef": "EVRITEST-{{MP_timestampMs}}"
+            }
+        ],
+        "sender": {
+            "code": "DELTA_Maison",
+            "addressLine1": "70 Gracechurch Street",
+            "addressLine2": "Suite 322",
+            "postCode": "EC3V 0HR",
+            "countryCode": "GBR",
+            "companyName": "Maison - Metapack",
+            "city": "London",
+            "contact": {
+                "name": "Sodiq A",
+                "email": "Info@METAPACK.com",
+                "phone": "777 777 777"
+            }
+        },
+        "recipient": {
+            "addressLine1": "Line 1",
+            "addressLine2": "Line 2",
+            "postCode": "WC1X 8AZ",
+            "countryCode": "GBR",
+            "companyName": "Joe King",
+            "city": "London",
+            "stateProvince": "",
+            "contact": {
+                "name": "Joe King",
+                "email": "Joe.King@Test.com",
+                "phone": "+447894488452"
+            },
+            "taxAndDuty": {}
+        },
+        "parcels": [
+            {
+                "shipperRef": "000001",
+                "packagingType": "BOX",
+                "weight": {
+                    "value": 1.2
+                },
+                "dimensions": {
+                    "height": 20,
+                    "width": 22,
+                    "depth": 15
+                },
+                "value": {
+                    "amount": 1,
+                    "currencyCode": "GBP"
+                },
+                "items": [
+                    {
+                        "itemRef": "prod1",
+                        "harmonisedCode": "1",
+                        "countryOfOrigin": "GBR",
+                        "fabricContent": "1",
+                        "description": "prod1",
+                        "itemType": "1",
+                        "quantity": 1,
+                        "value": {},
+                        "weight": {
+                            "value": 32
+                        }
+                    }
+                ]
+            }
+        ],
+        "attributes": {
+            "flexibleDelivery": 
+                {
+                    "deliveryInstructions": "LEAVE SAFE"
+                }
+            
+        },
+        "type": "delivery",
+        "tags": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        ]
+    },
+    "shippingRules": {
+        "carrierServices": [
+            "HERMPSND_S32692_6612/2025-05-28/*-*/*/*-*"
+        ]
+    },
+    "paperwork": {
+        "format": "zpl",
+        "dimension": "6x4",
+        "type": "all"
+    }
+}
