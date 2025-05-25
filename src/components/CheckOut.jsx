@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { Radio, RadioGroup } from '@headlessui/react'
 import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
@@ -19,10 +19,148 @@ const products = [
   },
   // More products...
 ]
-const deliveryMethods = [
-  { id: 1, title: 'Standard', turnaround: '4–10 business days', price: '$5.00' },
-  { id: 2, title: 'Express', turnaround: '2–5 business days', price: '$16.00' },
-]
+
+export default function CheckOut() {
+
+const [deliveryOptions, setDeliveryOptions] = useState([]);
+const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
+const [showDeliverySubOptions, setShowDeliverySubOptions] = useState(false);
+const [selectedDeliverySubOption, setSelectedDeliverySubOption] = useState(null);
+const [showCalendar, setShowCalendar] = useState(false);
+const [selectedDate, setSelectedDate] = useState(null);
+
+
+const deliverySubOptions = [
+  { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
+  { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
+  { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
+];
+
+// Generate next 14 days for calendar
+const getNext14Days = (deliveryWindows = []) => {
+  const days = [];
+  const today = new Date();
+  
+  for (let i = 1; i <= 14; i++) { // Start from tomorrow
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
+
+    // Check if this date falls within any delivery window
+    const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
+      const fromDate = new Date(window.from);
+      const toDate = new Date(window.to);
+      return date >= fromDate && date <= toDate;
+    }) : true;
+  
+      days.push({
+        date: date,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNumber: date.getDate(),
+        monthName: date.toLocaleDateString('en-US', { month: 'short' }),
+        isAvailable: isAvailable
+      });
+    }
+   return days.slice(0, 14); // Ensure we get exactly 14 delivery days
+};
+
+const [availableDates, setAvailableDates] = useState([]);
+
+const handleDateSelection = (date) => {
+  setSelectedDate(date);
+};
+
+
+useEffect(() => {
+  async function fetchDeliveryOptions() {
+    const response = await fetch("api/metapack/delivery-options");
+    const data = await response.json();
+
+    const mapped = data.results.map((option, index) => {
+      return {
+        id: index + 1,
+        title: getDeliveryGroupLabel(option.groupCodes[0]),
+        turnaround: getDeliveryWindow(option.delivery),
+        price: getPriceLabel(option.groupCodes[0]),
+        bookingCode: option.bookingCode,
+        carrierServiceCode: option.carrierServiceCode,
+        deliveryWindow: option.delivery // Keep the original delivery window
+      };
+    });
+    
+    setDeliveryOptions(mapped);
+    setSelectedDeliveryMethod(mapped[0]);
+    
+    // Extract all delivery windows for calendar availability
+    const deliveryWindows = data.results.map(option => option.delivery);
+    setAvailableDates(getNext14Days(deliveryWindows));
+  }
+  fetchDeliveryOptions();
+}, []);
+
+const handleSubOptionChange = (subOption) => {
+  setSelectedDeliverySubOption(subOption);
+  
+  if (subOption.id === 'nominated') {
+    setShowCalendar(true);
+    // If availableDates is empty, generate them
+    if (availableDates.length === 0) {
+      setAvailableDates(getNext14Days([])); // Generate with default availability
+    }
+  } else {
+    setShowCalendar(false);
+    setSelectedDate(null);
+  }
+};
+
+const handleDeliveryMethodChange = (deliveryMethod) => {
+  setSelectedDeliveryMethod(deliveryMethod);
+
+  if (deliveryMethod.title === 'Delivery') {
+    setShowDeliverySubOptions(true);
+    setSelectedDeliverySubOption(deliverySubOptions[0]);
+  } else {
+    setShowDeliverySubOptions(false);
+    setSelectedDeliverySubOption(null);
+  }
+};
+
+function getDeliveryGroupLabel(groupCode) {
+  switch (groupCode.toUpperCase()) {
+    case 'STANDARD':
+      return 'Delivery';
+    case 'NOMINATED':
+      return 'Local Collection Point';
+    case 'NEXTDAY':
+      return 'Next Day';
+    case 'PUDO':
+      return 'Click & Collect';
+    default:
+      return groupCode;
+  }
+}
+
+function getDeliveryWindow({ from, to }) {
+  if (!from || !to) return '';
+  const fromDate = new Date(from).toLocaleDateString();
+  const toDate = new Date(to).toLocaleDateString();
+  return `Estimated: ${fromDate} – ${toDate}`;
+}
+
+function getPriceLabel(groupCode) {
+  switch (groupCode.toUpperCase()) {
+    case 'STANDARD':
+      return '£5.95';
+    case 'NOMINATED':
+      return 'From £8.95';
+    case 'NEXTDAY':
+      return 'From £10.95';
+    default:
+      return '£6.95';
+  }
+}
+
+
+
 const paymentMethods = [
   { id: 'credit-card', title: 'Credit card' },
   { id: 'paypal', title: 'PayPal' },
@@ -47,7 +185,6 @@ export default function CheckOut() {
     size: '',
   })
 
-  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(deliveryMethods[0])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -293,10 +430,10 @@ export default function CheckOut() {
                 <legend className="text-lg font-medium text-gray-900">Delivery method</legend>
                 <RadioGroup
                   value={selectedDeliveryMethod}
-                  onChange={setSelectedDeliveryMethod}
+                  onChange={handleDeliveryMethodChange}
                   className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4"
                 >
-                  {deliveryMethods.map((deliveryMethod) => (
+                  {deliveryOptions.map((deliveryMethod) => (
                     <Radio
                       key={deliveryMethod.id}
                       value={deliveryMethod}
@@ -324,8 +461,98 @@ export default function CheckOut() {
                     </Radio>
                   ))}
                 </RadioGroup>
+
+                {/* Sub-delivery options for Delivery */}
+                {showDeliverySubOptions && (
+                  <div className="mt-6 pl-4 border-l-2 border-gray-200">
+                    <h3 className="text-md font-medium text-gray-900 mb-4">Choose delivery type</h3>
+                    <RadioGroup
+                      value={selectedDeliverySubOption}
+                      onChange={handleSubOptionChange}
+                      className="space-y-4"
+                    >
+                      {deliverySubOptions.map((subOption) => (
+                        <Radio
+                          key={subOption.id}
+                          value={subOption}
+                          aria-label={subOption.title}
+                          aria-description={`${subOption.turnaround} for ${subOption.price}`}
+                          className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
+                        >
+
+                        <span className="flex flex-1">
+                            <span className="flex flex-col">
+                              <span className="block text-sm font-medium text-gray-900">{subOption.title}</span>
+                              <span className="mt-1 flex items-center text-sm text-gray-500">
+                                {subOption.turnaround}
+                              </span>
+                              <span className="mt-2 text-sm font-medium text-gray-900">{subOption.price}</span>
+                            </span>
+                          </span>
+                          <CheckCircleIcon
+                            aria-hidden="true"
+                            className="size-5 text-indigo-600 group-not-data-checked:hidden"
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-indigo-500 group-data-focus:border"
+                          />
+                        </Radio>
+                         ))}
+                    </RadioGroup>
+                    {/* Calendar for Nominated Day */}
+                    {showCalendar && (
+                      <div className="mt-6 pl-4 border-l-2 border-gray-100">
+                        <h4 className="text-sm font-medium text-gray-900 mb-4">Choose your delivery date</h4>
+                        <div className="grid grid-cols-7 gap-2">
+                          {availableDates.map((day, index) => (
+  <button
+    key={index}
+    type="button"
+    onClick={() => day.isAvailable ? handleDateSelection(day) : null}
+    disabled={!day.isAvailable}
+    className={`
+      relative flex flex-col items-center justify-center p-3 text-xs rounded-lg border overflow-hidden
+      ${!day.isAvailable 
+        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+        : selectedDate?.date.getTime() === day.date.getTime()
+          ? 'bg-indigo-600 text-white border-indigo-600'
+          : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
+      }
+      transition-colors duration-200
+    `}
+  >
+    {/* Diagonal line for unavailable dates */}
+    {!day.isAvailable && (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
+      </div>
+    )}
+    <span className="font-medium relative z-10">{day.dayName}</span>
+    <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
+    <span className="text-xs relative z-10">{day.monthName}</span>
+  </button>
+))}
+                        </div>
+                        {selectedDate && (
+                          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                            <p className="text-sm text-green-800">
+                              <span className="font-medium">Selected:</span> {selectedDate.date.toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </fieldset>
             </div>
+
 
             {/* Payment */}
             <div className="mt-10 border-t border-gray-200 pt-10">
