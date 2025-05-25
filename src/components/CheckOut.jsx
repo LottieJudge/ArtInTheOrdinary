@@ -194,7 +194,7 @@ const paymentMethods = [
     e.preventDefault()
 
     try {
-      const response = await fetch('/api/contact', {
+      const formResponse = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -202,16 +202,28 @@ const paymentMethods = [
         body: JSON.stringify(formData),
       })
 
-      if (!response.ok) {
+      if (!formResponse.ok) {
         throw new Error('Failed to submit order')
       }
+      const emailResponse = await fetch('/api/email/order-confirmation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: formData.first_name,
+          email_address: formData.email_address,
+        }),
+      })
 
-      const result = await response.json()
-      console.log('Order submitted successfully:', result)
+      if (!emailResponse.ok) {
+        throw new Error('Failed to send confirmation email')
+      }
 
+      console.log('Order submitted successfully')
       router.push('/confirmation')
     } catch (error) {
-      console.error('Error submitting order:', error.message)
+      console.error('Error:', error.message)
     }
   }
 
