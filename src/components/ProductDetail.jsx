@@ -46,7 +46,7 @@ const product = {
     { name: 'S', inStock: true },
     { name: 'M', inStock: true },
     { name: 'L', inStock: true },
-    { name: 'XL', inStock: false },
+    { name: 'XL', inStock: true },
   ],
   description: `
     <p>The Basic tee is an honest new take on a classic. The tee uses super soft, pre-shrunk cotton for true comfort and a dependable fit. They are hand cut and sewn locally, with a special dye technique that gives each tee it's own look.</p>
@@ -70,10 +70,15 @@ function classNames(...classes) {
 
 export default function Example() {
   const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[2])
+  const [selectedSize, setSelectedSize] = useState(product.sizes[1])
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
+    console.log('Adding to cart:', {
+      product: product.name,
+      color: selectedColor.name,
+      size: selectedSize.name
+    });
     addToCart(product, selectedColor, selectedSize);
   };
 

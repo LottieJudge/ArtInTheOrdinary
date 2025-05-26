@@ -22,6 +22,11 @@ export function CartProvider({ children }) {
 
   // Add product to cart
   const addToCart = (product, color, size, quantity = 1) => {
+    console.log('CartContext addToCart called:', {
+      product: product.name,
+      color: color.name,
+      size: size.name
+    });
     setCartItems(prevItems => {
       // Check if item already exists with same product/color/size
       const existingItemIndex = prevItems.findIndex(
