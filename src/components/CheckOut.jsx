@@ -489,20 +489,32 @@ const handleSubmit = async (formSubmitEvent) => {
     const labelData = await labelResponse.json();
     console.log('Shipping label generated:', labelData);
     
-    // send confirmation email
-    const emailResponse = await fetch('/api/send-order-confirmation', {
-      method: 'POST',
-      body: JSON.stringify({
-        order: orderData,
-        label: labelData,
-        customer: {
-          name: `${formData.first_name} ${formData.last_name}`,
-          email: formData.email_address
-        }
-      }),
-      headers: { 'Content-Type': 'application/json' }
-    });
-    
+    // send confirmation email with Resend
+const emailResponse = await fetch('/api/email/send', {
+  method: 'POST',
+  body: JSON.stringify({
+    to: formData.email_address,
+    subject: 'Order Confirmation - Maison Metapack',
+    data: {
+      firstName: formData.first_name,
+      orderDetails: {
+        items: cartItems,
+        totals: orderTotals,
+        deliveryMethod: selectedDeliveryMethod,
+        deliverySubOption: selectedDeliverySubOption,
+        pudoOption: selectedPudoOption,
+        shippingLabel: labelData
+      },
+      shipping: {
+        name: `${formData.first_name} ${formData.last_name}`,
+        address: formData.firstLine_address,
+        city: formData.city,
+        postcode: formData.post_code
+      }
+    }
+  }),
+  headers: { 'Content-Type': 'application/json' }
+});
     if (!emailResponse.ok) {
       throw new Error('Failed to send confirmation email');
     }
