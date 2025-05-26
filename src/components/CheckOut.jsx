@@ -20,7 +20,6 @@ const products = [
     imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/checkout-page-02-product-01.jpg',
     imageAlt: "Front of men's Basic Tee in black.",
   },
-  // More products...
 ]
 
 //Delivery options/sub-options, collection options
@@ -40,7 +39,6 @@ function getDeliveryGroupLabel(groupCode) {
 }
 
 // map component for PUDO options
-
 function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -105,7 +103,6 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
       }
     });
      
-
     // Fit map to show all markers
     if (markers.current.length > 0) {
       const bounds = new maplibregl.LngLatBounds();
@@ -125,7 +122,6 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
       map.current.setCenter(searchCenter);
       map.current.setZoom(12);
     }
-
 
     return () => {
       markers.current.forEach(marker => marker.remove());
@@ -151,8 +147,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
         center: [selectedPudo.long, selectedPudo.lat],
         zoom: 16, // Higher zoom level to see streets clearly
         duration: 1000 // Smooth animation duration in milliseconds
-      });
-        
+      });  
       } else {
         element.style.filter = 'none';
       }
@@ -170,27 +165,21 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
 
 export default function CheckOut() {
   const { cartItems, cartTotal, cartSubtotal, cartVAT } = useCart();
-
   // delivery options logic
-
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
   const [showDeliverySubOptions, setShowDeliverySubOptions] = useState(false);
   const [selectedDeliverySubOption, setSelectedDeliverySubOption] = useState(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-
   // PUDO options logic 
-
   const [showCollectionSearch, setShowCollectionSearch] = useState(false);
   const [collectionPostcode, setCollectionPostcode] = useState('');
   const [pudoOptions, setPudoOptions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPudoOption, setSelectedPudoOption] = useState(null);
   const [searchCenter, setSearchCenter] = useState(null);
-
   // Delivery sub-options 
-
   const deliverySubOptions = [
     { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
     { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
@@ -249,7 +238,6 @@ export default function CheckOut() {
       setShowCalendar(false);
       setSelectedDate(null);
       setShowCollectionSearch(false); // Hide collection search
-
       setPudoOptions([]); // Clear PUDO options
       setSelectedPudoOption(null); // Clear selected PUDO option
       setCollectionPostcode(''); // Clear postcode input
@@ -257,7 +245,6 @@ export default function CheckOut() {
   };
 
   // Handlers
-
   // Handle collection postcode change
   const handleCollectionPostcodeChange = (event) => {
     setCollectionPostcode(event.target.value);
@@ -267,10 +254,9 @@ export default function CheckOut() {
   const handleCollectionPostcodeSearch = async () => {
     if (!collectionPostcode.trim()) return;
       setIsSearching(true);
-
       setPudoOptions([]);
       setSelectedPudoOption(null);
-    
+  
       try {
       // geocode the postcode using MapTiler
       const geocodeResponse = await fetch(
@@ -340,7 +326,6 @@ export default function CheckOut() {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
 
-      
       const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
         const fromDate = new Date(window.from);
         const toDate = new Date(window.to);
@@ -381,7 +366,7 @@ export default function CheckOut() {
         };
       });
       
-    const uniqueOptions = mapped.reduce((acc, current) => {
+        const uniqueOptions = mapped.reduce((acc, current) => {
         const existingOption = acc.find(option => option.title === current.title);
         if (!existingOption) {
           acc.push(current);
@@ -449,6 +434,7 @@ export default function CheckOut() {
     e.preventDefault()
 
     try {
+      // Handle form submission
       const formResponse = await fetch('/api/contact', {
         method: 'POST',
         headers: {
@@ -460,14 +446,25 @@ export default function CheckOut() {
       if (!formResponse.ok) {
         throw new Error('Failed to submit order')
       }
-      const emailResponse = await fetch('/api/email/order-confirmation', {
+
+      // resend confirmation
+      const emailResponse = await fetch('/api/email/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          first_name: formData.first_name,
-          email_address: formData.email_address,
+          to: formData.email_address,
+          subject: 'Order Confirmation - Maison Metapack',
+          data: {
+            firstName: formData.first_name,
+            orderDetails: {
+              items: cartItems,
+              totals: orderTotals,
+              deliveryMethod: selectedDeliveryMethod,
+              deliverySubOption: selectedDeliverySubOption
+            }
+          }
         }),
       })
 
@@ -490,7 +487,6 @@ export default function CheckOut() {
           <div>
             <div>
               <h2 className="text-lg font-medium text-gray-900">Contact information</h2>
-
               <div className="mt-4">
                 <label htmlFor="email_address" className="block text-sm/6 font-medium text-gray-700">
                   Email address
@@ -734,7 +730,7 @@ export default function CheckOut() {
                       value={selectedDeliverySubOption}
                       onChange={handleSubOptionChange}
                       className="space-y-4"
-                    >
+                      >
                       {deliverySubOptions.map((subOption) => (
                         <Radio
                           key={subOption.id}
@@ -743,7 +739,6 @@ export default function CheckOut() {
                           aria-description={`${subOption.turnaround} for ${subOption.price}`}
                           className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
                         >
-
                         <span className="flex flex-1">
                             <span className="flex flex-col">
                               <span className="block text-sm font-medium text-gray-900">{subOption.title}</span>
@@ -821,7 +816,6 @@ export default function CheckOut() {
               <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
     <h3 className="text-lg font-semibold text-gray-900 mb-2">Where would you like to collect from?</h3>
     <p className="text-sm text-gray-600 mb-4">Choose from thousands of collection points nationwide</p>
-    
     <div className="mt-4">
       <label htmlFor="collection-postcode" className="block text-sm font-medium text-gray-700 mb-2">
         Search by town, city or postcode
