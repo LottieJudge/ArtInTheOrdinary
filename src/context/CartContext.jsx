@@ -1,13 +1,27 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { useEffect, useState, useRef, useContext } from 'react'
+import { ChevronDownIcon } from '@heroicons/react/16/solid'
+import { Radio, RadioGroup } from '@headlessui/react'
+import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
+import { useRouter } from 'next/navigation'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import { createContext } from 'react'
 
 const CartContext = createContext()
 
+
+const generateItemKey = (productId, color, size) => {
+  return `${productId}-${color.name}-${size.name}`;
+};
+
 export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([])
-  
-  // Load cart from localStorage on initial load
+  const [cartSubtotal, setCartSubtotal] = useState(0)
+  const [cartVAT, setCartVAT] = useState(0)
+  const [cartTotal, setCartTotal] = useState(0)
+
   useEffect(() => {
     const storedCart = localStorage.getItem('cart')
     if (storedCart) {
@@ -15,12 +29,17 @@ export function CartProvider({ children }) {
     }
   }, [])
 
-  // Save cart to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems))
+    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
+    const vat = subtotal * 0.2 // Example VAT calculation
+    const total = subtotal + vat
+    setCartSubtotal(subtotal)
+    setCartVAT(vat)
+    setCartTotal(total)
   }, [cartItems])
 
-  // Add product to cart
+  // Update addToCart to include the composite key
   const addToCart = (product, color, size, quantity = 1) => {
     console.log('CartContext addToCart called:', {
       product: product.name,
@@ -28,22 +47,23 @@ export function CartProvider({ children }) {
       size: size.name
     });
     setCartItems(prevItems => {
+      const itemKey = generateItemKey(product.id, color, size);
+      
       // Check if item already exists with same product/color/size
       const existingItemIndex = prevItems.findIndex(
-        item => item.id === product.id && 
-               item.color.name === color.name && 
-               item.size.name === size.name
-      )
+        item => item.cartItemKey === itemKey
+      );
       
       if (existingItemIndex >= 0) {
         // Update existing item quantity
-        const updatedItems = [...prevItems]
-        updatedItems[existingItemIndex].quantity += quantity
-        return updatedItems
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += quantity;
+        return updatedItems;
       } else {
-        // Add new item
+        // Add new item with composite key
         return [...prevItems, {
           id: product.id,
+          cartItemKey: itemKey, // Add the composite key
           name: product.name,
           price: product.price,
           imageSrc: product.images.find(img => img.primary)?.imageSrc,
@@ -51,31 +71,33 @@ export function CartProvider({ children }) {
           color: color,
           size: size,
           quantity: quantity
-        }]
+        }];
       }
-    })
-  }
+    });
+  };
 
-  // Remove item from cart
   const removeFromCart = (index) => {
     setCartItems(prevItems => prevItems.filter((_, i) => i !== index))
   }
 
-  // Update item quantity in cart
-
   const updateQuantity = (index, newQuantity) => {
     if (newQuantity < 1) return; // Don't allow quantities less than 1
-    
     setCartItems(prevItems => {
       const updatedItems = [...prevItems];
       updatedItems[index].quantity = newQuantity;
       return updatedItems;
     });
-  };
+  }
 
-  // Get total number of items in cart
   const getCartCount = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0)
+  }
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP'
+    }).format(price)
   }
 
   return (
@@ -84,8 +106,11 @@ export function CartProvider({ children }) {
       addToCart, 
       removeFromCart, 
       getCartCount, 
-      updateQuantity,
-      
+      updateQuantity, 
+      cartSubtotal,
+      cartVAT,
+      cartTotal,
+      formatPrice
     }}>
       {children}
     </CartContext.Provider>

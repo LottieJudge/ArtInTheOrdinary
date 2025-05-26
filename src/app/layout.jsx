@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContactUs from "@/components/ContactUs";
 import { Analytics } from "@vercel/analytics/react"
-import { CartProvider } from '@/context/CartContext';
+import { CartProvider } from '../context/CartContext';
 
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
