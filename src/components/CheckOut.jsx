@@ -470,6 +470,8 @@ const handleSubmit = async (formSubmitEvent) => {
       }
     } else if (selectedDeliveryMethod) {
       bookingCodeToSend = selectedDeliveryMethod.bookingCode;
+    } else {
+      throw new Error('No valid delivery method or collection option selected. Please select a delivery or collection method.');
     }
     
     // Create a summary of ordered items

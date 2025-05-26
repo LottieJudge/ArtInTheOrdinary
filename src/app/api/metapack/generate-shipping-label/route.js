@@ -121,8 +121,6 @@ export async function POST(req) {
       headers: {
         "Content-Type": "application/json",
         Authorization: process.env.METAPACK_SAPI_BASIC_AUTH
-
-
       },
       body: JSON.stringify(consignmentPayload)
     });
