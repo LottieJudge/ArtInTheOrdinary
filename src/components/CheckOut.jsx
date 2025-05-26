@@ -439,7 +439,7 @@ const paymentMethods = [
     firstLine_address: '',
     house_apartment_number: '',
     city: '',
-    country: 'United States',
+    country: 'United Kingdom',
     state_province: '',
     post_code: '',
     phone_number: '',
@@ -448,47 +448,91 @@ const paymentMethods = [
   })
 
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (inputEvent) => {
+  const { name, value } = inputEvent.target
+  setFormData((prevFormData) => ({ ...prevFormData, [name]: value }))
+}
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    try {
-      const formResponse = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (!formResponse.ok) {
-        throw new Error('Failed to submit order')
+const handleSubmit = async (formSubmitEvent) => {
+  formSubmitEvent.preventDefault();
+  
+  try {
+    // Determine which bookingCode to use based on delivery method selected
+    let bookingCodeToSend;
+    
+    if (showCollectionSearch && selectedPudoOption) {
+      bookingCodeToSend = selectedPudoOption.bookingCode;
+    } else if (selectedDeliverySubOption) {
+      bookingCodeToSend = selectedDeliverySubOption.bookingCode;
+      
+      if (selectedDeliverySubOption.id === 'nominated' && selectedDate) {
+        bookingCodeToSend = `${bookingCodeToSend}/${selectedDate.date.toISOString().split('T')[0]}`;
       }
-      const emailResponse = await fetch('/api/email/order-confirmation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          first_name: formData.first_name,
-          email_address: formData.email_address,
-        }),
-      })
-
-      if (!emailResponse.ok) {
-        throw new Error('Failed to send confirmation email')
-      }
-
-      console.log('Order submitted successfully')
-      router.push('/confirmation')
-    } catch (error) {
-      console.error('Error:', error.message)
+    } else if (selectedDeliveryMethod) {
+      bookingCodeToSend = selectedDeliveryMethod.bookingCode;
     }
+    
+    // Create a summary of ordered items
+    const itemCount = products.length;
+    const itemSummary = itemCount > 1 
+      ? `${itemCount} items including ${products[0].title}`
+      : products[0].title;
+      
+    // Create detailed items array for the API
+    const itemsDetails = products.map((product, index) => ({
+      itemRef: `item-${index + 1}`,
+      description: `${product.title} (${product.color}, ${product.size})`,
+      quantity: 1, // Ideally this would come from the product quantity
+      value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
+    }));
+    
+    // Add product information to form data
+    const orderData = {
+      ...formData,
+      bookingCode: bookingCodeToSend,
+      country: formData.country,
+      item_ordered: itemSummary, // Summary for backward compatibility 
+      items_details: itemsDetails // Detailed array of all products
+    };
+    
+    // generate the shipping label
+    const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!labelResponse.ok) {
+      throw new Error('Failed to generate shipping label');
+    }
+    
+    const labelData = await labelResponse.json();
+    console.log('Shipping label generated:', labelData);
+    
+    // send confirmation email
+    const emailResponse = await fetch('/api/send-order-confirmation', {
+      method: 'POST',
+      body: JSON.stringify({
+        order: orderData,
+        label: labelData,
+        customer: {
+          name: `${formData.first_name} ${formData.last_name}`,
+          email: formData.email_address
+        }
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!emailResponse.ok) {
+      throw new Error('Failed to send confirmation email');
+    }
+    
+    console.log('Order submitted successfully');
+    router.push('/confirmation');
+  } catch (error) {
+    console.error('Error:', error.message);
   }
+};
 
   return (
     <div className="bg-gray-50">
@@ -635,9 +679,7 @@ const paymentMethods = [
                       autoComplete="country-name"
                       className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                     >
-                      <option>United States</option>
-                      <option>Canada</option>
-                      <option>Mexico</option>
+                      <option>United Kingdom</option>
                     </select>
                     <ChevronDownIcon
                       aria-hidden="true"
