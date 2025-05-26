@@ -8,7 +8,7 @@ import { useCart } from '@/context/CartContext'
 
 const product = {
   name: 'Metapack Tee',
-  price: '$35',
+  price: '£35',
   rating: 3.9,
   reviewCount: 512,
   href: '#',

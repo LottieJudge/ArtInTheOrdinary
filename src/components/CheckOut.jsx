@@ -13,7 +13,7 @@ const products = [
     id: 1,
     title: 'Basic Tee',
     href: '#',
-    price: '$32.00',
+    price: '£32.00',
     color: 'Black',
     size: 'Large',
     imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/checkout-page-02-product-01.jpg',
@@ -172,6 +172,14 @@ const deliverySubOptions = [
   { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
 ];
 
+
+const [orderTotals, setOrderTotals] = useState({
+  subtotal: 0,
+  shipping: 0,
+  vat: 0,
+  total: 0
+});
+
 // Handle delivery method change
 const handleDeliveryMethodChange = (deliveryMethod) => {
   setSelectedDeliveryMethod(deliveryMethod);
@@ -319,6 +327,25 @@ useEffect(() => {
   fetchDeliveryOptions();
 }, []);
 
+
+useEffect(() => {
+  const subtotal = products.reduce((sum, product) => {
+    const price = parseFloat(product.price.replace(/[^0-9.-]+/g, ''));
+    return sum + price;
+  }, 0);
+  
+  const shipping = selectedDeliverySubOption ? 
+    parseFloat(selectedDeliverySubOption.price.replace('£', '')) : 0;
+  
+  const vat = subtotal * 0.20;
+  
+  setOrderTotals({
+    subtotal: subtotal, 
+    shipping: shipping,
+    vat: vat, 
+    total: subtotal + shipping 
+  });
+}, [products, selectedDeliverySubOption]);
 
 function getDeliveryWindow({ from, to }) {
   if (!from || !to) return '';
@@ -967,20 +994,26 @@ const paymentMethods = [
               </ul>
               <dl className="space-y-6 border-t border-gray-200 px-4 py-6 sm:px-6">
                 <div className="flex items-center justify-between">
-                  <dt className="text-sm">Subtotal</dt>
-                  <dd className="text-sm font-medium text-gray-900">$64.00</dd>
+                  <dt className="text-sm">Subtotal (inc. VAT)</dt>
+                  <dd className="text-sm font-medium text-gray-900">
+                    £{orderTotals.subtotal.toFixed(2)}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-sm">Shipping</dt>
-                  <dd className="text-sm font-medium text-gray-900">$5.00</dd>
+                  <dd className="text-sm font-medium text-gray-900">
+                    £{orderTotals.shipping.toFixed(2)}
+                  </dd>
                 </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm">Taxes</dt>
-                  <dd className="text-sm font-medium text-gray-900">$5.52</dd>
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <dt>VAT (included)</dt>
+                  <dd>£{orderTotals.vat.toFixed(2)}</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                   <dt className="text-base font-medium">Total</dt>
-                  <dd className="text-base font-medium text-gray-900">$75.52</dd>
+                  <dd className="text-base font-medium text-gray-900">
+                    £{orderTotals.total.toFixed(2)}
+                  </dd>
                 </div>
               </dl>
             
