@@ -70,10 +70,15 @@ function classNames(...classes) {
 
 export default function Example() {
   const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[2])
+  const [selectedSize, setSelectedSize] = useState(product.sizes[1])
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
+    console.log('Adding to cart:', {
+      product: product.name,
+      color: selectedColor.name,
+      size: selectedSize.name
+    });
     addToCart(product, selectedColor, selectedSize);
   };
 
