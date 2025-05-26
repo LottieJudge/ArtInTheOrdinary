@@ -12,7 +12,7 @@ import Image from 'next/image'
 export default function Basket() {
     const { cartItems = [], removeFromCart, updateQuantity } = useCart() || {};
     const subtotal = cartItems?.reduce((total, item) => {
-        const price = parseFloat(item?.price?.replace('', '') || '0');
+        const price = parseFloat(item?.price?.replace('£', '') || '0');
         return total + (price * (item?.quantity || 1));
     }, 0) || 0;
 
@@ -34,7 +34,6 @@ export default function Basket() {
               {cartItems.length > 0 ? (
                 cartItems.map((item, index) => (
                   <li key={index} className="flex py-6 sm:py-10">
-                    {/* Display cart item details */}
                     <div className="shrink-0">
                       <img
                         alt={item.imageAlt}
@@ -44,14 +43,12 @@ export default function Basket() {
                     </div>
                 
                 <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-        {/* Item details */}
         <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
           <div>
             <h3 className="text-sm font-medium text-gray-700">{item.name}</h3>
             <p className="mt-1 text-sm text-gray-500">{item.color?.name}</p>
             {item.size?.name && <p className="mt-1 text-sm text-gray-500">{item.size.name}</p>}
             <p className="mt-1 text-sm font-medium text-gray-900">{item.price}</p>
-           {/* ADD QUANTITY CONTROLS HERE */}
         <div className="mt-4 flex items-center">
           <span className="mr-2 text-sm text-gray-500">Qty:</span>
           <div className="flex items-center border border-gray-300 rounded-md">
@@ -114,7 +111,7 @@ export default function Basket() {
             <dl className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <dt className="text-sm text-gray-600">Subtotal</dt>
-                    <dd className="text-sm font-medium text-gray-900">${subtotal.toFixed(2)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">£{subtotal.toFixed(2)}</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="flex items-center text-sm text-gray-600">
@@ -124,9 +121,10 @@ export default function Basket() {
                         <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
                     </a>
                     </dt>
-                    <dd className="text-sm font-medium text-gray-900">${shipping.toFixed(2)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">£{shipping.toFixed(2)}</dd>
                 </div>
-                <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+                {/* removed tax section because not applicaple for UK markets */}
+                {/* <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="flex text-sm text-gray-600">
                     <span>Tax estimate</span>
                     <a href="#" className="ml-2 shrink-0 text-gray-400 hover:text-gray-500">
@@ -134,11 +132,11 @@ export default function Basket() {
                         <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
                     </a>
                     </dt>
-                    <dd className="text-sm font-medium text-gray-900">${tax.toFixed(2)}</dd>
-                </div>
+                    <dd className="text-sm font-medium text-gray-900">£{tax.toFixed(2)}</dd>
+                </div> */}
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="text-base font-medium text-gray-900">Order total</dt>
-                    <dd className="text-base font-medium text-gray-900">${total.toFixed(2)}</dd>
+                    <dd className="text-base font-medium text-gray-900">£{total.toFixed(2)}</dd>
                 </div>
             </dl>
 
