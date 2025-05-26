@@ -16,9 +16,9 @@ export default function Basket() {
         return total + (price * (item?.quantity || 1));
     }, 0) || 0;
 
-    const shipping = 5.00;
-    const tax = subtotal * 0.08;
-    const total = subtotal + shipping + tax;
+    const shipping = 5.95;
+    // const tax = subtotal * 0.08;
+    const total = subtotal + shipping;
 
   return (
     <div className="bg-white">
