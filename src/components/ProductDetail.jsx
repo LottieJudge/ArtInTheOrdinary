@@ -7,7 +7,7 @@ import { CurrencyDollarIcon, GlobeAmericasIcon } from '@heroicons/react/24/outli
 import { useCart } from '@/context/CartContext'
 
 const product = {
-  name: 'Basic Tee',
+  name: 'Metapack Tee',
   price: '$35',
   rating: 3.9,
   reviewCount: 512,
