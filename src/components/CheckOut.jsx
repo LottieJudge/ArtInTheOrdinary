@@ -7,6 +7,7 @@ import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
 import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { useCart } from '../context/CartContext';
 
 const products = [
   {
@@ -23,7 +24,6 @@ const products = [
 ]
 
 //Delivery options/sub-options, collection options
-
 function getDeliveryGroupLabel(groupCode) {
   switch (groupCode.toUpperCase()) {
     case 'STANDARD':
@@ -169,266 +169,259 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
 }
 
 export default function CheckOut() {
+  const { cartItems, cartTotal, cartSubtotal, cartVAT } = useCart();
 
-// delivery options logic
+  // delivery options logic
 
-const [deliveryOptions, setDeliveryOptions] = useState([]);
-const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
-const [showDeliverySubOptions, setShowDeliverySubOptions] = useState(false);
-const [selectedDeliverySubOption, setSelectedDeliverySubOption] = useState(null);
-const [showCalendar, setShowCalendar] = useState(false);
-const [selectedDate, setSelectedDate] = useState(null);
+  const [deliveryOptions, setDeliveryOptions] = useState([]);
+  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
+  const [showDeliverySubOptions, setShowDeliverySubOptions] = useState(false);
+  const [selectedDeliverySubOption, setSelectedDeliverySubOption] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
-// PUDO options logic 
+  // PUDO options logic 
 
-const [showCollectionSearch, setShowCollectionSearch] = useState(false);
-const [collectionPostcode, setCollectionPostcode] = useState('');
-const [pudoOptions, setPudoOptions] = useState([]);
-const [isSearching, setIsSearching] = useState(false);
-const [selectedPudoOption, setSelectedPudoOption] = useState(null);
-const [searchCenter, setSearchCenter] = useState(null);
+  const [showCollectionSearch, setShowCollectionSearch] = useState(false);
+  const [collectionPostcode, setCollectionPostcode] = useState('');
+  const [pudoOptions, setPudoOptions] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedPudoOption, setSelectedPudoOption] = useState(null);
+  const [searchCenter, setSearchCenter] = useState(null);
 
+  // Delivery sub-options 
 
+  const deliverySubOptions = [
+    { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
+    { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
+    { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
+  ];
 
-// Delivery sub-options 
-
-const deliverySubOptions = [
-  { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
-  { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
-  { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
-];
-
-
-const [orderTotals, setOrderTotals] = useState({
-  subtotal: 0,
-  shipping: 0,
-  vat: 0,
-  total: 0
-});
-
-// Handle delivery method change
-const handleDeliveryMethodChange = (deliveryMethod) => {
-  setSelectedDeliveryMethod(deliveryMethod);
-
- if (deliveryMethod.title === 'Delivery') {
-    setShowDeliverySubOptions(true);
-    setSelectedDeliverySubOption(deliverySubOptions[0]);
-    setShowCollectionSearch(false); // Hide collection search
-    setPudoOptions([]); // Clear PUDO options
-    setSelectedPudoOption(null); // Clear selected PUDO option
-    setCollectionPostcode(''); // Clear postcode input
-  } else if (deliveryMethod.title === 'Local Collection Point') {
-    setShowCollectionSearch(true); // Show collection search
-    setShowDeliverySubOptions(false);
-    setSelectedDeliverySubOption(null);
-    setShowCalendar(false);
-    setSelectedDate(null);
-  } else {
-    setShowDeliverySubOptions(false);
-    setSelectedDeliverySubOption(null);
-    setShowCalendar(false);
-    setSelectedDate(null);
-    setShowCollectionSearch(false); // Hide collection search
-
-    setPudoOptions([]); // Clear PUDO options
-    setSelectedPudoOption(null); // Clear selected PUDO option
-    setCollectionPostcode(''); // Clear postcode input
-  }
-};
-
-
-// Handlers
-
-// Handle collection postcode change
-const handleCollectionPostcodeChange = (event) => {
-  setCollectionPostcode(event.target.value);
-};
-
-// handle collection postcode search with geocoding
-const handleCollectionPostcodeSearch = async () => {
-  if (!collectionPostcode.trim()) return;
-    setIsSearching(true);
-
-    setPudoOptions([]);
-    setSelectedPudoOption(null);
-  
-    try {
-    // geocode the postcode using MapTiler
-    const geocodeResponse = await fetch(
-      `https://api.maptiler.com/geocoding/${encodeURIComponent(collectionPostcode)}.json?key=Z6KWfABzoUTv2ZQgWxlo&country=GB`
-    );
-    const geocodeData = await geocodeResponse.json();
-    
-    if (!geocodeData.features || geocodeData.features.length === 0) {
-      console.error('Postcode not found');
-      setPudoOptions([]);
-      setSearchCenter(null); // ADD THIS LINE - you're missing it
-      return;
-    }
-    
-    // Extract coordinates from geocoding result
-    const [longitude, latitude] = geocodeData.features[0].center;
-    console.log('Geocoded coordinates:', { latitude, longitude });
-
-    // Store search center for map
-    setSearchCenter([longitude, latitude]);
-    
-    // Search for PUDO options using the coordinates
-    console.log('Fetching PUDO options from API...'); // ADD THIS LOG
-    const pudoResponse = await fetch(`/api/metapack/pudo-options?lat=${latitude}&long=${longitude}`);
-    const pudoData = await pudoResponse.json();
-    
-    console.log('PUDO API response:', pudoData); // ADD THIS LOG
-    
-    if (pudoData.results) {
-      setPudoOptions(pudoData.results);
-      console.log('PUDO search results:', pudoData.results);
-    } else {
-      console.log('No results property in PUDO response'); // ADD THIS LOG
-      setPudoOptions([]);
-    }
-  } catch (error) {
-    console.error('Error searching PUDO options:', error);
-    setPudoOptions([]);
-    setSearchCenter(null); 
-  } finally {
-    setIsSearching(false);
-  }
-};
-
-// Handle delivery options 
-const handleSubOptionChange = (subOption) => {
-  setSelectedDeliverySubOption(subOption);
-  
-  if (subOption.id === 'nominated') {
-    setShowCalendar(true);
-    // If availableDates is empty, generate them
-    if (availableDates.length === 0) {
-      setAvailableDates(getNext14Days([])); // Generate with default availability
-    }
-  } else {
-    setShowCalendar(false);
-    setSelectedDate(null);
-  }
-};
-
-
-
-// nominated day delivery options (14 days)
-const getNext14Days = (deliveryWindows = []) => {
-  const days = [];
-  const today = new Date();
-  
-  for (let i = 1; i <= 14; i++) { // Start from tomorrow
-    const date = new Date(today);
-    date.setDate(today.getDate() + i);
-
-    
-    const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
-      const fromDate = new Date(window.from);
-      const toDate = new Date(window.to);
-      return date >= fromDate && date <= toDate;
-    }) : true;
-  
-      days.push({
-        date: date,
-        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
-        dayNumber: date.getDate(),
-        monthName: date.toLocaleDateString('en-US', { month: 'short' }),
-        isAvailable: isAvailable
-      });
-    }
-   return days.slice(0, 14); // Ensure we get exactly 14 delivery days
-};
-
-const [availableDates, setAvailableDates] = useState([]);
-
-const handleDateSelection = (date) => {
-  setSelectedDate(date);
-};
-
-
-useEffect(() => {
-  async function fetchDeliveryOptions() {
-    const response = await fetch("api/metapack/delivery-options");
-    const data = await response.json();
-
-    const mapped = data.results.map((option, index) => {
-      return {
-        id: index + 1,
-        title: getDeliveryGroupLabel(option.groupCodes[0]),
-        turnaround: getDeliveryWindow(option.delivery),
-        price: getPriceLabel(option.groupCodes[0]),
-        bookingCode: option.bookingCode,
-        carrierServiceCode: option.carrierServiceCode,
-        deliveryWindow: option.delivery // Keep the original delivery window
-      };
-    });
-    
-   const uniqueOptions = mapped.reduce((acc, current) => {
-      const existingOption = acc.find(option => option.title === current.title);
-      if (!existingOption) {
-        acc.push(current);
-      }
-      return acc;
-    }, []);
-    
-    setDeliveryOptions(uniqueOptions);
-    
-    // Extract all delivery windows for calendar availability
-    const deliveryWindows = data.results.map(option => option.delivery);
-    setAvailableDates(getNext14Days(deliveryWindows));
-  }
-  fetchDeliveryOptions();
-}, []);
-
-
-useEffect(() => {
-  const subtotal = products.reduce((sum, product) => {
-    const price = parseFloat(product.price.replace(/[^0-9.-]+/g, ''));
-    return sum + price;
-  }, 0);
-  
-  const shipping = selectedDeliverySubOption ? 
-    parseFloat(selectedDeliverySubOption.price.replace('£', '')) : 0;
-  
-  const vat = subtotal * 0.20;
-  
-  setOrderTotals({
-    subtotal: subtotal, 
-    shipping: shipping,
-    vat: vat, 
-    total: subtotal + shipping 
+  const [orderTotals, setOrderTotals] = useState({
+    subtotal: 0,
+    shipping: 0,
+    vat: 0,
+    total: 0
   });
-}, [products, selectedDeliverySubOption]);
 
-function getDeliveryWindow({ from, to }) {
-  if (!from || !to) return '';
-  const fromDate = new Date(from).toLocaleDateString();
-  const toDate = new Date(to).toLocaleDateString();
-  return `Estimated: ${fromDate} – ${toDate}`;
-}
+  useEffect(() => {
+    const subtotal = cartItems.reduce((acc, item) => {
+      const itemPrice = typeof item.price === 'string' 
+        ? parseFloat(item.price.replace('£', '')) 
+        : item.price;
+      return acc + (itemPrice * item.quantity);
+    }, 0);
 
-function getPriceLabel(groupCode) {
-  switch (groupCode.toUpperCase()) {
-    case 'STANDARD':
-      return '£5.95';
-    case 'NOMINATED':
-      return 'From £8.95';
-    case 'NEXTDAY':
-      return 'From £10.95';
-    default:
-      return '£6.95';
+    const shippingCost = selectedDeliverySubOption 
+      ? parseFloat(selectedDeliverySubOption.price.replace('£', '')) 
+      : 0;
+
+    const vat = subtotal * 0.20;
+    const total = subtotal + shippingCost;
+
+    setOrderTotals({
+      subtotal,
+      shipping: shippingCost,
+      vat,
+      total
+    });
+  }, [cartItems, selectedDeliverySubOption]);
+
+  const handleDeliveryMethodChange = (deliveryMethod) => {
+    setSelectedDeliveryMethod(deliveryMethod);
+
+    if (deliveryMethod.title === 'Delivery') {
+      setShowDeliverySubOptions(true);
+      setSelectedDeliverySubOption(deliverySubOptions[0]);
+      setShowCollectionSearch(false); // Hide collection search
+      setPudoOptions([]); // Clear PUDO options
+      setSelectedPudoOption(null); // Clear selected PUDO option
+      setCollectionPostcode(''); // Clear postcode input
+    } else if (deliveryMethod.title === 'Local Collection Point') {
+      setShowCollectionSearch(true); // Show collection search
+      setShowDeliverySubOptions(false);
+      setSelectedDeliverySubOption(null);
+      setShowCalendar(false);
+      setSelectedDate(null);
+    } else {
+      setShowDeliverySubOptions(false);
+      setSelectedDeliverySubOption(null);
+      setShowCalendar(false);
+      setSelectedDate(null);
+      setShowCollectionSearch(false); // Hide collection search
+
+      setPudoOptions([]); // Clear PUDO options
+      setSelectedPudoOption(null); // Clear selected PUDO option
+      setCollectionPostcode(''); // Clear postcode input
+    }
+  };
+
+  // Handlers
+
+  // Handle collection postcode change
+  const handleCollectionPostcodeChange = (event) => {
+    setCollectionPostcode(event.target.value);
+  };
+
+  // handle collection postcode search with geocoding
+  const handleCollectionPostcodeSearch = async () => {
+    if (!collectionPostcode.trim()) return;
+      setIsSearching(true);
+
+      setPudoOptions([]);
+      setSelectedPudoOption(null);
+    
+      try {
+      // geocode the postcode using MapTiler
+      const geocodeResponse = await fetch(
+        `https://api.maptiler.com/geocoding/${encodeURIComponent(collectionPostcode)}.json?key=Z6KWfABzoUTv2ZQgWxlo&country=GB`
+      );
+      const geocodeData = await geocodeResponse.json();
+      
+      if (!geocodeData.features || geocodeData.features.length === 0) {
+        console.error('Postcode not found');
+        setPudoOptions([]);
+        setSearchCenter(null); // ADD THIS LINE - you're missing it
+        return;
+      }
+      
+      // Extract coordinates from geocoding result
+      const [longitude, latitude] = geocodeData.features[0].center;
+      console.log('Geocoded coordinates:', { latitude, longitude });
+
+      // Store search center for map
+      setSearchCenter([longitude, latitude]);
+      
+      // Search for PUDO options using the coordinates
+      console.log('Fetching PUDO options from API...'); // ADD THIS LOG
+      const pudoResponse = await fetch(`/api/metapack/pudo-options?lat=${latitude}&long=${longitude}`);
+      const pudoData = await pudoResponse.json();
+      
+      console.log('PUDO API response:', pudoData); // ADD THIS LOG
+      
+      if (pudoData.results) {
+        setPudoOptions(pudoData.results);
+        console.log('PUDO search results:', pudoData.results);
+      } else {
+        console.log('No results property in PUDO response'); // ADD THIS LOG
+        setPudoOptions([]);
+      }
+    } catch (error) {
+      console.error('Error searching PUDO options:', error);
+      setPudoOptions([]);
+      setSearchCenter(null); 
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle delivery options 
+  const handleSubOptionChange = (subOption) => {
+    setSelectedDeliverySubOption(subOption);
+    
+    if (subOption.id === 'nominated') {
+      setShowCalendar(true);
+      // If availableDates is empty, generate them
+      if (availableDates.length === 0) {
+        setAvailableDates(getNext14Days([])); // Generate with default availability
+      }
+    } else {
+      setShowCalendar(false);
+      setSelectedDate(null);
+    }
+  };
+
+  // nominated day delivery options (14 days)
+  const getNext14Days = (deliveryWindows = []) => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 1; i <= 14; i++) { // Start from tomorrow
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+
+      
+      const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
+        const fromDate = new Date(window.from);
+        const toDate = new Date(window.to);
+        return date >= fromDate && date <= toDate;
+      }) : true;
+    
+        days.push({
+          date: date,
+          dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          dayNumber: date.getDate(),
+          monthName: date.toLocaleDateString('en-US', { month: 'short' }),
+          isAvailable: isAvailable
+        });
+      }
+    return days.slice(0, 14); // Ensure we get exactly 14 delivery days
+  };
+
+  const [availableDates, setAvailableDates] = useState([]);
+
+  const handleDateSelection = (date) => {
+    setSelectedDate(date);
+  };
+
+  useEffect(() => {
+    async function fetchDeliveryOptions() {
+      const response = await fetch("api/metapack/delivery-options");
+      const data = await response.json();
+
+      const mapped = data.results.map((option, index) => {
+        return {
+          id: index + 1,
+          title: getDeliveryGroupLabel(option.groupCodes[0]),
+          turnaround: getDeliveryWindow(option.delivery),
+          price: getPriceLabel(option.groupCodes[0]),
+          bookingCode: option.bookingCode,
+          carrierServiceCode: option.carrierServiceCode,
+          deliveryWindow: option.delivery 
+        };
+      });
+      
+    const uniqueOptions = mapped.reduce((acc, current) => {
+        const existingOption = acc.find(option => option.title === current.title);
+        if (!existingOption) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+      
+      setDeliveryOptions(uniqueOptions);
+      
+      const deliveryWindows = data.results.map(option => option.delivery);
+      setAvailableDates(getNext14Days(deliveryWindows));
+    }
+    fetchDeliveryOptions();
+  }, []);
+
+  function getDeliveryWindow({ from, to }) {
+    if (!from || !to) return '';
+    const fromDate = new Date(from).toLocaleDateString();
+    const toDate = new Date(to).toLocaleDateString();
+    return `Estimated: ${fromDate} – ${toDate}`;
   }
-}
 
+  function getPriceLabel(groupCode) {
+    switch (groupCode.toUpperCase()) {
+      case 'STANDARD':
+        return '£5.95';
+      case 'NOMINATED':
+        return 'From £8.95';
+      case 'NEXTDAY':
+        return 'From £10.95';
+      default:
+        return '£6.95';
+    }
+  }
 
-
-const paymentMethods = [
-  { id: 'credit-card', title: 'Credit card' },
-  { id: 'paypal', title: 'PayPal' },
-  { id: 'etransfer', title: 'eTransfer' },
-]
+  const paymentMethods = [
+    { id: 'credit-card', title: 'Credit card' },
+    { id: 'paypal', title: 'PayPal' },
+    { id: 'etransfer', title: 'eTransfer' },
+  ]
 
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -446,7 +439,6 @@ const paymentMethods = [
     item_ordered: '',
     size: '',
   })
-
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -494,7 +486,6 @@ const paymentMethods = [
     <div className="bg-gray-50">
       <div className="mx-auto max-w-2xl px-4 pt-16 pb-24 sm:px-6 lg:max-w-7xl lg:px-8">
         <h2 className="sr-only">Checkout</h2>
-
         <form onSubmit={handleSubmit} className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
           <div>
             <div>
@@ -520,7 +511,6 @@ const paymentMethods = [
 
             <div className="mt-10 border-t border-gray-200 pt-10">
               <h2 className="text-lg font-medium text-gray-900">Shipping information</h2>
-
               <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
                   <label htmlFor="first_name" className="block text-sm/6 font-medium text-gray-700">
@@ -780,34 +770,34 @@ const paymentMethods = [
                         <h4 className="text-sm font-medium text-gray-900 mb-4">Choose your delivery date</h4>
                         <div className="grid grid-cols-7 gap-2">
                           {availableDates.map((day, index) => (
-  <button
-    key={index}
-    type="button"
-    onClick={() => day.isAvailable ? handleDateSelection(day) : null}
-    disabled={!day.isAvailable}
-    className={`
-      relative flex flex-col items-center justify-center p-3 text-xs rounded-lg border overflow-hidden
-      ${!day.isAvailable 
-        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-        : selectedDate?.date.getTime() === day.date.getTime()
-          ? 'bg-indigo-600 text-white border-indigo-600'
-          : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
-      }
-      transition-colors duration-200
-    `}
-  >
-    {/* Diagonal line for unavailable dates */}
-    {!day.isAvailable && (
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
-      </div>
-    )}
-    <span className="font-medium relative z-10">{day.dayName}</span>
-    <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
-    <span className="text-xs relative z-10">{day.monthName}</span>
-  </button>
-))}
-                        </div>
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={() => day.isAvailable ? handleDateSelection(day) : null}
+                              disabled={!day.isAvailable}
+                              className={`
+                                relative flex flex-col items-center justify-center p-3 text-xs rounded-lg border overflow-hidden
+                                ${!day.isAvailable 
+                                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                                  : selectedDate?.date.getTime() === day.date.getTime()
+                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                    : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
+                                }
+                                transition-colors duration-200
+                              `}
+                            >
+                            {/* Diagonal line for unavailable dates */}
+                            {!day.isAvailable && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
+                              </div>
+                            )}
+                            <span className="font-medium relative z-10">{day.dayName}</span>
+                            <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
+                            <span className="text-xs relative z-10">{day.monthName}</span>
+                          </button>
+                          ))}
+                         </div>
                         {selectedDate && (
                           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
                             <p className="text-sm text-green-800">
@@ -993,64 +983,32 @@ const paymentMethods = [
           {/* Order summary */}
           <div className="mt-10 lg:mt-0">
             <h2 className="text-lg font-medium text-gray-900">Order summary</h2>
-
             <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-xs">
               <h3 className="sr-only">Items in your cart</h3>
               <ul role="list" className="divide-y divide-gray-200">
-                {products.map((product) => (
-                  <li key={product.id} className="flex px-4 py-6 sm:px-6">
+                {cartItems.map((item) => (
+                  <li key={item.cartItemKey} className="flex px-4 py-6 sm:px-6">
                     <div className="shrink-0">
-                      <img alt={product.imageAlt} src={product.imageSrc} className="w-20 rounded-md" />
+                      <img alt={item.imageAlt} src={item.imageSrc} className="w-20 rounded-md" />
                     </div>
-
                     <div className="ml-6 flex flex-1 flex-col">
                       <div className="flex">
                         <div className="min-w-0 flex-1">
                           <h4 className="text-sm">
-                            <a href={product.href} className="font-medium text-gray-700 hover:text-gray-800">
-                              {product.title}
+                            <a href={item.href} className="font-medium text-gray-700 hover:text-gray-800">
+                              {item.name}
                             </a>
                           </h4>
-                          <p className="mt-1 text-sm text-gray-500">{product.color}</p>
-                          <p className="mt-1 text-sm text-gray-500">{product.size}</p>
+                          <p className="mt-1 text-sm text-gray-500">{item.color.name}</p>
+                          <p className="mt-1 text-sm text-gray-500">{item.size.name}</p>
                         </div>
-
-                        <div className="ml-4 flow-root shrink-0">
-                          <button
-                            type="button"
-                            className="-m-2.5 flex items-center justify-center bg-white p-2.5 text-gray-400 hover:text-gray-500"
-                          >
-                            <span className="sr-only">Remove</span>
-                            <TrashIcon aria-hidden="true" className="size-5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-1 items-end justify-between pt-2">
-                        <p className="mt-1 text-sm font-medium text-gray-900">{product.price}</p>
-
-                        <div className="ml-4">
-                          <div className="grid grid-cols-1">
-                            <select
-                              id="quantity"
-                              name="quantity"
-                              aria-label="Quantity"
-                              className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-                            >
-                              <option value={1}>1</option>
-                              <option value={2}>2</option>
-                              <option value={3}>3</option>
-                              <option value={4}>4</option>
-                              <option value={5}>5</option>
-                              <option value={6}>6</option>
-                              <option value={7}>7</option>
-                              <option value={8}>8</option>
-                            </select>
-                            <ChevronDownIcon
-                              aria-hidden="true"
-                              className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-500 sm:size-4"
-                            />
-                          </div>
+                        <div className="ml-4 flex flex-col">
+                          <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                          <p className="mt-1 text-sm font-medium text-gray-900">
+                            £{((typeof item.price === 'string' 
+                              ? parseFloat(item.price.replace('£', '')) 
+                              : item.price) * item.quantity).toFixed(2)}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1081,13 +1039,11 @@ const paymentMethods = [
                   </dd>
                 </div>
               </dl>
-            
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-        
                   <button
                   type="submit"
                   className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
-                >
+                  >
                   Confirm order
                 </button>
               </div>
