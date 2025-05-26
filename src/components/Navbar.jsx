@@ -208,7 +208,7 @@ const navigation = {
     dropdown: true,
     items: [
       { name: 'About', href: '/about' },
-      { name: 'Lookbook', href: '#' }
+      { name: 'Lookbook', href: '/lookbook' }
     ]
   },
   /* { name: 'Company', href: '#' }, */
