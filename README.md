@@ -133,6 +133,41 @@ The contact form ([`ContactUs.jsx`](src/components/ContactUs.jsx)) integrates wi
 - `/checkout` - Checkout process
 - `/confirmation` - Order confirmation page
 
+📦 Delivery & Collection Options
+The application implements a sophisticated delivery system powered by Metapack:
+
+Standard Delivery: Fixed-date delivery with carrier options
+Nominated Day: Calendar-based delivery date selection
+Collection Points (PUDO): Integration with local pickup locations
+Geocoding: Postcode-based search for nearby collection points
+Dynamic Pricing: Variable pricing based on delivery method
+🗺️ Maps Integration
+The checkout process includes interactive maps for collection point selection:
+
+MapLibre GL: Open-source mapping solution
+Custom Markers: Visual indicators for collection points
+Interactive Selection: Click-to-select functionality
+Responsive Map Views: Adapts to viewport size
+Geocoding API: Location search functionality
+
+🗺️ Maps Integration
+The checkout process includes interactive maps for collection point selection:
+
+MapLibre GL: Open-source mapping solution
+Custom Markers: Visual indicators for collection points
+Interactive Selection: Click-to-select functionality
+Responsive Map Views: Adapts to viewport size
+Geocoding API: Location search functionality
+
+🌐 API Integration
+The application connects to several backend services:
+
+Metapack API: For delivery options and PUDO locations (/api/metapack/pudo-options)
+Contact Form API: For customer inquiries
+Email Notification API: For order confirmations
+Geocoding API: For location-based services
+
+
 ## 🚀 Deployment
 
 This project is optimized for deployment on [Vercel](https://vercel.com/):
