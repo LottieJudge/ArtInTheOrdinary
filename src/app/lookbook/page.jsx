@@ -81,6 +81,14 @@ const gallery = [
     imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/category-page-01-image-card-03.jpg',
     imageAlt: 'Textured gray felt pouch for paper cards with snap button flap and elastic pen holder loop.',
   },
+  {
+    id: 10,
+    title: 'Maison Metapack | Christmas drop',
+    href: '#',
+    date: 'December 2023',
+    imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/category-page-01-image-card-03.jpg',
+    imageAlt: 'Textured gray felt pouch for paper cards with snap button flap and elastic pen holder loop.',
+  },
 ];
 
 export default function LookBookPage() {

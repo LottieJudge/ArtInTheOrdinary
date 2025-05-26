@@ -1,55 +1,45 @@
-export async function GET() {
-  return Response.json({
-    header: {
-      requestId: 'maison-pudo-test',
-      requestDate: new Date().toISOString()
-    },
-    results: [
-      {
-        storeId: "S32692",
-        storeName: "Evri ParcelShop - Tesco Stratford",
-        address: "Tesco, 10 High Street, Stratford, London",
-        postcode: "E15 2EE",
-        lat: 51.5416,
-        long: 0.0010,
-        carrierCode: "HERMESPOS",
-        carrierServiceCode: "HERMPSND",
-        bookingCode: "HERMPSND_S32692_6612/2025-05-29/*-*/*/*-*",
-        delivery: {
-          from: "2025-05-29T08:00:00Z",
-          to: "2025-05-29T20:00:00Z"
-        }
-      },
-      {
-        storeId: "S44501",
-        storeName: "Evri ParcelShop - WHSmith Oxford Street",
-        address: "WHSmith, 160 Oxford St, London",
-        postcode: "W1D 1NF",
-        lat: 51.5154,
-        long: -0.1410,
-        carrierCode: "HERMESPOS",
-        carrierServiceCode: "HERMPSSTD",
-        bookingCode: "HERMPSSTD_S44501_7214/2025-05-30/*-*/*/*-*",
-        delivery: {
-          from: "2025-05-30T08:00:00Z",
-          to: "2025-05-30T20:00:00Z"
-        }
-      },
-      {
-        storeId: "S55893",
-        storeName: "Evri ParcelShop - Co-op Camden",
-        address: "Co-op Food, 196 Camden High St, London",
-        postcode: "NW1 8QP",
-        lat: 51.5412,
-        long: -0.1438,
-        carrierCode: "HERMESPOS",
-        carrierServiceCode: "HERMPSND",
-        bookingCode: "HERMPSND_S55893_9198/2025-06-01/*-*/*/*-*",
-        delivery: {
-          from: "2025-06-01T08:00:00Z",
-          to: "2025-06-01T20:00:00Z"
-        }
-      }
-    ]
-  });
-}
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const lat = searchParams.get('lat');
+  const long = searchParams.get('long');
+  
+  console.log('PUDO API called with coordinates:', { lat, long });
+  
+  try {
+    let url = 'https://dmo.metapack.com/dmoptions/find';
+    const params = new URLSearchParams({
+      key: process.env.METAPACK_API_KEY,
+      wh_code: 'DELTA_Maison',
+      optionType: 'PUDO',
+      r_t: 'lsc',
+      // Add parameters to get multiple results
+      limit: '20',                    // Limit to 20 results
+      radius: '5000',                 // 5km radius in meters
+      sort: 'distance',               // Sort by distance
+      includeDistance: 'true',        // Include distance in response
+      maxDistance: '10000'            // Maximum distance 10km
+    });
+
+    // If coordinates are provided, use them for location-based search
+    if (lat && long) {
+      params.append('c_lat', lat);
+      params.append('c_long', long);
+    }
+
+    console.log('Metapack API request URL:', `${url}?${params.toString()}`);
+
+    const response = await fetch(`${url}?${params}`);
+    const data = await response.json();
+    
+    console.log('Metapack API response:', JSON.stringify(data, null, 2));
+    console.log('Number of results returned:', data.results ? data.results.length : 0);
+    
+    return Response.json(data);
+  } catch (error) {
+    console.error('Error fetching PUDO options:', error);
+    return Response.json({ 
+      error: 'Failed to fetch PUDO options',
+      results: [] 
+    });
+  }
+};

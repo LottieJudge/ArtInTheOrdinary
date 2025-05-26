@@ -41,27 +41,38 @@ function getDeliveryGroupLabel(groupCode) {
 
 // map component for PUDO options
 
-function MapComponent({ pudoOptions, onSelectPudo, selectedPudo }) {
+function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef([]);
 
   useEffect(() => {
-    if (!mapContainer.current || pudoOptions.length === 0) return;
+    if (!mapContainer.current) return;
 
     // Initialize map
     map.current = new maplibregl.Map({
-  container: mapContainer.current,
-  style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=Z6KWfABzoUTv2ZQgWxlo',
-  center: [-0.1276, 51.5074], // Default to London
-  zoom: 10
+    container: mapContainer.current,
+    style: 'https://api.maptiler.com/maps/basic-v2/style.json?key=Z6KWfABzoUTv2ZQgWxlo',
+    center: searchCenter || [-0.1276, 51.5074], // Use search center if available
+    zoom: searchCenter ? 12 : 10 // Zoom in more if we have a specific search location
 });
 
     // Add navigation controls
     map.current.addControl(new maplibregl.NavigationControl());
 
+     if (searchCenter) {
+      new maplibregl.Marker({ color: 'red' })
+        .setLngLat(searchCenter)
+        .setPopup(
+          new maplibregl.Popup({ offset: 25 })
+            .setHTML('<div class="p-2"><p class="text-sm font-medium">Search Location</p></div>')
+        )
+        .addTo(map.current);
+    }
+
     // Debug: Log the PUDO data to see what fields are available
     console.log('PUDO Options:', pudoOptions);
+    console.log('Search Center:', searchCenter);
 
     let markersAdded = 0;
 
@@ -98,11 +109,23 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo }) {
     // Fit map to show all markers
     if (markers.current.length > 0) {
       const bounds = new maplibregl.LngLatBounds();
+      
+      // Include search center in bounds if available
+      if (searchCenter) {
+        bounds.extend(searchCenter);
+      }
+      
       markers.current.forEach(marker => {
         bounds.extend(marker.getLngLat());
       });
+      
       map.current.fitBounds(bounds, { padding: 50 });
+      } else if (searchCenter) {
+      // If no PUDO markers but we have a search center, center on that
+      map.current.setCenter(searchCenter);
+      map.current.setZoom(12);
     }
+
 
     return () => {
       markers.current.forEach(marker => marker.remove());
@@ -112,7 +135,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo }) {
         map.current = null;
       }
     };
-  }, [pudoOptions, onSelectPudo]);
+  }, [pudoOptions, onSelectPudo, searchCenter])
 
   // Highlight selected marker
   useEffect(() => {
@@ -163,6 +186,9 @@ const [collectionPostcode, setCollectionPostcode] = useState('');
 const [pudoOptions, setPudoOptions] = useState([]);
 const [isSearching, setIsSearching] = useState(false);
 const [selectedPudoOption, setSelectedPudoOption] = useState(null);
+const [searchCenter, setSearchCenter] = useState(null);
+
+
 
 // Delivery sub-options 
 
@@ -218,24 +244,53 @@ const handleCollectionPostcodeChange = (event) => {
   setCollectionPostcode(event.target.value);
 };
 
-// handle collection postcode search
+// handle collection postcode search with geocoding
 const handleCollectionPostcodeSearch = async () => {
   if (!collectionPostcode.trim()) return;
     setIsSearching(true);
-  try {
-    const response = await fetch('/api/metapack/pudo-options');
-    const data = await response.json();
-    
-    // For now, just filter by postcode (you can enhance this later)
-    const filteredResults = data.results.filter(pudo => 
-      pudo.postcode.toLowerCase().includes(collectionPostcode.toLowerCase()) ||
-      pudo.address.toLowerCase().includes(collectionPostcode.toLowerCase())
+
+    setPudoOptions([]);
+    setSelectedPudoOption(null);
+  
+    try {
+    // geocode the postcode using MapTiler
+    const geocodeResponse = await fetch(
+      `https://api.maptiler.com/geocoding/${encodeURIComponent(collectionPostcode)}.json?key=Z6KWfABzoUTv2ZQgWxlo&country=GB`
     );
+    const geocodeData = await geocodeResponse.json();
     
-    setPudoOptions(filteredResults);
-    console.log('Search results:', filteredResults);
+    if (!geocodeData.features || geocodeData.features.length === 0) {
+      console.error('Postcode not found');
+      setPudoOptions([]);
+      setSearchCenter(null); // ADD THIS LINE - you're missing it
+      return;
+    }
+    
+    // Extract coordinates from geocoding result
+    const [longitude, latitude] = geocodeData.features[0].center;
+    console.log('Geocoded coordinates:', { latitude, longitude });
+
+    // Store search center for map
+    setSearchCenter([longitude, latitude]);
+    
+    // Search for PUDO options using the coordinates
+    console.log('Fetching PUDO options from API...'); // ADD THIS LOG
+    const pudoResponse = await fetch(`/api/metapack/pudo-options?lat=${latitude}&long=${longitude}`);
+    const pudoData = await pudoResponse.json();
+    
+    console.log('PUDO API response:', pudoData); // ADD THIS LOG
+    
+    if (pudoData.results) {
+      setPudoOptions(pudoData.results);
+      console.log('PUDO search results:', pudoData.results);
+    } else {
+      console.log('No results property in PUDO response'); // ADD THIS LOG
+      setPudoOptions([]);
+    }
   } catch (error) {
     console.error('Error searching PUDO options:', error);
+    setPudoOptions([]);
+    setSearchCenter(null); 
   } finally {
     setIsSearching(false);
   }
@@ -804,36 +859,46 @@ const paymentMethods = [
   </div>
 )}
 
-{pudoOptions.length > 0 && (
+{/* Conditional rendering for the entire PUDO results section, including the map */}
+{showCollectionSearch && searchCenter && (
   <div className="mt-4">
-    <h4 className="text-sm font-medium text-gray-900 mb-3">
-      Found {pudoOptions.length} collection point{pudoOptions.length !== 1 ? 's' : ''}
-    </h4>
-    {/* Map Container */}
+    {/* Conditionally show "Found X points" only if there are results */}
+    {pudoOptions.length > 0 && (
+      <h4 className="text-sm font-medium text-gray-900 mb-3">
+        Found {pudoOptions.length} collection point{pudoOptions.length !== 1 ? 's' : ''}
+      </h4>
+    )}
+    
+    {/* Map Container - This will now render if searchCenter is set */}
     <div className="mb-4">
       <MapComponent 
         pudoOptions={pudoOptions} 
         onSelectPudo={setSelectedPudoOption}
         selectedPudo={selectedPudoOption}
+        searchCenter={searchCenter} // searchCenter will be valid here
       />
     </div>
-    <div className="space-y-2 max-h-60 overflow-y-auto">
-      {pudoOptions.map((pudo) => (
-        <div 
-          key={pudo.storeId} 
-          onClick={() => setSelectedPudoOption(pudo)}
-          className={`p-3 border rounded-md cursor-pointer transition-colors ${
-            selectedPudoOption?.storeId === pudo.storeId 
-              ? 'border-indigo-500 bg-indigo-50' 
-              : 'border-gray-200 bg-white hover:bg-gray-50'
-          }`}
-        >
-          <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
-          <p className="text-sm text-gray-600">{pudo.address}</p>
-          <p className="text-sm text-gray-500">{pudo.postcode}</p>
-        </div>
-      ))}
-    </div>
+
+    {/* Conditionally show the list of PUDO options */}
+    {pudoOptions.length > 0 && (
+      <div className="space-y-2 max-h-60 overflow-y-auto">
+        {pudoOptions.map((pudo, index) => (
+          <div 
+            key={`${pudo.storeId}-${index}-${pudo.lat}-${pudo.long}`}
+            onClick={() => setSelectedPudoOption(pudo)}
+            className={`p-3 border rounded-md cursor-pointer transition-colors ${
+              selectedPudoOption?.storeId === pudo.storeId 
+                ? 'border-indigo-500 bg-indigo-50' 
+                : 'border-gray-200 bg-white hover:bg-gray-50'
+            }`}
+          >
+            <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
+            <p className="text-sm text-gray-600">{pudo.address}</p>
+            <p className="text-sm text-gray-500">{pudo.postcode}</p>
+          </div>
+        ))}
+      </div>
+    )}
   </div>
 )}
           
