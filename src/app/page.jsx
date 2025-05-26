@@ -32,6 +32,30 @@ export default function HomePage() {
       imageSrc: '/images/tshirts.jpg',
       imageAlt: 'three pack of t-shirts',
     },
+    {
+      id: 4,
+      name: 'Orange Bomber Jacket',
+      href: "/products/orange-bomber",
+      price: '£39.99',
+      imageSrc: '/images/jacket.jpg',
+      imageAlt: 'Orangge bomber jacket',
+    },
+    {
+      id: 5,
+      name: 'knitted poncho',
+      href: '#',
+      price: '£59.99',
+      imageSrc: '/images/poncho.jpg',
+      imageAlt: 'knitted poncho',
+    },
+    {
+      id: 6,
+      name: 'three pack of t-shirts',
+      href: '#',
+      price: '£24.99',
+      imageSrc: '/images/tshirts.jpg',
+      imageAlt: 'three pack of t-shirts',
+    },
   ];
   return (
     <>
