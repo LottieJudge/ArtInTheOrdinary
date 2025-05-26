@@ -4,19 +4,18 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req) {
   try {
-    const { firstName, lastName, email, phone, requirements } = await req.json();
+    const { first_name, email_address } = await req.json();
 
     const data = await resend.emails.send({
-      from: 'enquiries@marcosotech.com',
-      to: ['sg@marcosotrade.com', 'aa@marcosotrade.com'],
-      subject: 'New Enquiery For Services - MTR Website Submission',
-      html: 
-        `<h2>New Contact Form Submission</h2>
-        <strong>First Name:</strong> ${firstName}<br />
-        <strong>Last Name:</strong> ${lastName}<br />
-        <strong>Email:</strong> ${email}<br />
-        <strong>Phone:</strong> ${phone}<br />
-        <strong>Requirements:</strong><br />${requirements}
+      from: 'sg@marcosotrade.com',
+      to: email_address,
+      subject: 'Thanks for coming to see us!',
+      html: `
+        <div style="font-family: sans-serif; padding: 20px;">
+          <h2>Thanks for your time today, ${first_name}!</h2>
+          <p>We're excited to work together soon, in the meantime we'll be shipping out your cap asap!</p>
+          <p>Team Maison Metapack</p>
+        </div>
       `,
     });
 
@@ -25,4 +24,3 @@ export async function POST(req) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 }
- 
