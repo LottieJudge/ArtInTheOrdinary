@@ -9,10 +9,10 @@ import Image from 'next/image'
 
 
 
-export default function Example() {
+export default function Basket() {
     const { cartItems = [], removeFromCart, updateQuantity } = useCart() || {};
     const subtotal = cartItems?.reduce((total, item) => {
-        const price = parseFloat(item?.price?.replace('$', '') || '0');
+        const price = parseFloat(item?.price?.replace('', '') || '0');
         return total + (price * (item?.quantity || 1));
     }, 0) || 0;
 
