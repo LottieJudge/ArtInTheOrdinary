@@ -172,7 +172,7 @@ const deliverySubOptions = [
   { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
 ];
 
-// Order totals state
+
 const [orderTotals, setOrderTotals] = useState({
   subtotal: 0,
   shipping: 0,
@@ -337,14 +337,13 @@ useEffect(() => {
   const shipping = selectedDeliverySubOption ? 
     parseFloat(selectedDeliverySubOption.price.replace('£', '')) : 0;
   
-  // VAT is 20% of subtotal (included in price)
   const vat = subtotal * 0.20;
   
   setOrderTotals({
-    subtotal: subtotal, // This is the price including VAT
+    subtotal: subtotal, 
     shipping: shipping,
-    vat: vat, // Showing VAT separately for transparency
-    total: subtotal + shipping // Total including VAT
+    vat: vat, 
+    total: subtotal + shipping 
   });
 }, [products, selectedDeliverySubOption]);
 
