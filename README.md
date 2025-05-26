@@ -141,14 +141,7 @@ Nominated Day: Calendar-based delivery date selection
 Collection Points (PUDO): Integration with local pickup locations
 Geocoding: Postcode-based search for nearby collection points
 Dynamic Pricing: Variable pricing based on delivery method
-🗺️ Maps Integration
-The checkout process includes interactive maps for collection point selection:
 
-MapLibre GL: Open-source mapping solution
-Custom Markers: Visual indicators for collection points
-Interactive Selection: Click-to-select functionality
-Responsive Map Views: Adapts to viewport size
-Geocoding API: Location search functionality
 
 🗺️ Maps Integration
 The checkout process includes interactive maps for collection point selection:
