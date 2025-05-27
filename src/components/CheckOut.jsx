@@ -216,6 +216,8 @@ export default function CheckOut() {
     });
   }, [cartItems, selectedDeliverySubOption]);
 
+  
+
   const handleDeliveryMethodChange = (deliveryMethod) => {
     setSelectedDeliveryMethod(deliveryMethod);
 
@@ -306,42 +308,87 @@ export default function CheckOut() {
     setSelectedDeliverySubOption(subOption);
     
     if (subOption.id === 'nominated') {
-      setShowCalendar(true);
-      // If availableDates is empty, generate them
-      if (availableDates.length === 0) {
-        setAvailableDates(getNext14Days([])); // Generate with default availability
-      }
+    setShowCalendar(true);
+    // Fetch real nominated day options from your API
+    fetchNominatedDays();
+  } else {
+    setShowCalendar(false);
+    setSelectedDate(null);
+  }
+};
+
+  const fetchNominatedDays = async () => {
+  try {
+    // Use the customer's postcode from the form, fallback to default
+    const customerPostcode = formData.post_code || 'E20 2ST';
+    
+    console.log('Fetching nominated days for postcode:', customerPostcode);
+    
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}`);
+    const data = await response.json();
+    
+    console.log('Nominated days API response:', data);
+    console.log('Available dates from API:', data.availableDates);
+    
+    if (data.availableDates && data.availableDates.length > 0) {
+    console.log('Processing delivery windows:', data.availableDates);
+
+
+      const calendarDates = getNext14Days(data.availableDates);
+      setAvailableDates(calendarDates);
+      console.log('Calendar dates with real data:', calendarDates);
     } else {
-      setShowCalendar(false);
-      setSelectedDate(null);
+      console.log('No available dates from API, showing all dates as unavailable');
+      // Show all dates as unavailable - pass empty array so all dates show as unavailable
+      setAvailableDates(getNext14Days([]));
     }
-  };
+  } catch (error) {
+    console.error('Error fetching nominated days:', error);
+    // On error, show all dates as unavailable - don't give false hope
+    setAvailableDates(getNext14Days([]));
+  }
+};
 
-  // nominated day delivery options (14 days)
-  const getNext14Days = (deliveryWindows = []) => {
-    const days = [];
-    const today = new Date();
-    
-    for (let i = 1; i <= 14; i++) { // Start from tomorrow
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
+ // nominated day delivery options (14 days)
+const getNext14Days = (deliveryWindows = []) => {
+  console.log('getNext14Days called with deliveryWindows:', deliveryWindows);
+  const days = [];
+  const today = new Date();
+  
+  for (let i = 1; i <= 14; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
 
-      const isAvailable = deliveryWindows.length > 0 ? deliveryWindows.some(window => {
-        const fromDate = new Date(window.from);
-        const toDate = new Date(window.to);
-        return date >= fromDate && date <= toDate;
-      }) : true;
+    // Find all delivery windows for this specific date
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     
-        days.push({
-          date: date,
-          dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
-          dayNumber: date.getDate(),
-          monthName: date.toLocaleDateString('en-US', { month: 'short' }),
-          isAvailable: isAvailable
-        });
-      }
-    return days.slice(0, 14); // Ensure we get exactly 14 delivery days
-  };
+    const availableWindows = deliveryWindows.filter(window => {
+      const fromDate = new Date(window.from);
+      const toDate = new Date(window.to);
+      const fromDateOnly = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+      const toDateOnly = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+      
+      return dateOnly >= fromDateOnly && dateOnly <= toDateOnly;
+    });
+
+    const isAvailable = availableWindows.length > 0;
+
+    days.push({
+      date: date,
+      dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayNumber: date.getDate(),
+      monthName: date.toLocaleDateString('en-US', { month: 'short' }),
+      isAvailable: isAvailable,
+      // Store ALL delivery windows for this date
+      deliveryWindows: availableWindows,
+      // Keep the first booking code for backward compatibility
+      bookingCode: availableWindows.length > 0 ? availableWindows[0].bookingCode : null
+    });
+  }
+  
+  console.log('Final calendar days:', days);
+  return days.slice(0, 14);
+};
 
   const [availableDates, setAvailableDates] = useState([]);
 
@@ -349,38 +396,72 @@ export default function CheckOut() {
     setSelectedDate(date);
   };
 
-  useEffect(() => {
-    async function fetchDeliveryOptions() {
-      const response = await fetch("api/metapack/delivery-options");
-      const data = await response.json();
+  
 
-      const mapped = data.results.map((option, index) => {
-        return {
-          id: index + 1,
-          title: getDeliveryGroupLabel(option.groupCodes[0]),
-          turnaround: getDeliveryWindow(option.delivery),
-          price: getPriceLabel(option.groupCodes[0]),
-          bookingCode: option.bookingCode,
-          carrierServiceCode: option.carrierServiceCode,
-          deliveryWindow: option.delivery 
-        };
-      });
-      
-        const uniqueOptions = mapped.reduce((acc, current) => {
-        const existingOption = acc.find(option => option.title === current.title);
-        if (!existingOption) {
-          acc.push(current);
-        }
-        return acc;
-      }, []);
-      
-      setDeliveryOptions(uniqueOptions);
-      
-      const deliveryWindows = data.results.map(option => option.delivery);
-      setAvailableDates(getNext14Days(deliveryWindows));
+    useEffect(() => {
+    async function fetchDeliveryOptions() {
+      try {
+        // Create static delivery options for the main selection
+        const staticDeliveryOptions = [
+          {
+            id: 1,
+            title: 'Delivery',
+            turnaround: 'Various options available',
+            price: 'From £5.95',
+            bookingCode: 'DELIVERY_GENERAL',
+            carrierServiceCode: 'STANDARD',
+            deliveryWindow: null
+          },
+          {
+            id: 2,
+            title: 'Local Collection Point',
+            turnaround: 'Collect when convenient',
+            price: 'From £3.95',
+            bookingCode: 'PUDO_GENERAL',
+            carrierServiceCode: 'PUDO',
+            deliveryWindow: null
+          }
+        ];
+
+        setDeliveryOptions(staticDeliveryOptions);
+        
+        // Set all dates as unavailable initially - real data will be fetched when user selects nominated day
+        setAvailableDates(getNext14Days([])); // Empty array = all dates unavailable
+        
+      } catch (error) {
+        console.error('Error setting up delivery options:', error);
+        
+        // Fallback to static options if anything fails
+        const fallbackOptions = [
+          {
+            id: 1,
+            title: 'Delivery',
+            turnaround: 'Various options available',
+            price: 'From £5.95',
+            bookingCode: 'DELIVERY_GENERAL',
+            carrierServiceCode: 'STANDARD',
+            deliveryWindow: null
+          },
+          {
+            id: 2,
+            title: 'Local Collection Point',
+            turnaround: 'Collect when convenient',
+            price: 'From £3.95',
+            bookingCode: 'PUDO_GENERAL',
+            carrierServiceCode: 'PUDO',
+            deliveryWindow: null
+          }
+        ];
+        
+        setDeliveryOptions(fallbackOptions);
+        setAvailableDates(getNext14Days([])); // All dates unavailable on error too
+      }
     }
+    
     fetchDeliveryOptions();
   }, []);
+
+
 
   function getDeliveryWindow({ from, to }) {
     if (!from || !to) return '';
@@ -425,40 +506,65 @@ export default function CheckOut() {
     size: '',
   })
 
+  useEffect(() => {
+  // If nominated day is selected and postcode is entered, refresh the available dates
+  if (selectedDeliverySubOption?.id === 'nominated' && formData.post_code && formData.post_code.length >= 5) {
+    console.log('Postcode changed, refetching nominated days for:', formData.post_code);
+    fetchNominatedDays();
+  }
+}, [formData.post_code, selectedDeliverySubOption]);
+
+// ... then your existing fetchDeliveryOptions useEffect continues
+useEffect(() => {
+  async function fetchDeliveryOptions() {
+    // ... existing code
+  }
+  fetchDeliveryOptions();
+}, []);
+
 
   const handleChange = (inputEvent) => {
   const { name, value } = inputEvent.target
   setFormData((prevFormData) => ({ ...prevFormData, [name]: value }))
 }
 
-const handleSubmit = async (formSubmitEvent) => {
-  formSubmitEvent.preventDefault();
-  
-  try {
-    // Determine which bookingCode to use based on delivery method selected
-    let bookingCodeToSend;
+  const handleSubmit = async (formSubmitEvent) => {
+    formSubmitEvent.preventDefault();
     
-    if (showCollectionSearch && selectedPudoOption) {
+    try {
+      let bookingCodeToSend;
+      
+      if (showCollectionSearch && selectedPudoOption) {
       bookingCodeToSend = selectedPudoOption.bookingCode;
     } else if (selectedDeliverySubOption) {
-      bookingCodeToSend = selectedDeliverySubOption.bookingCode;
-      
       if (selectedDeliverySubOption.id === 'nominated' && selectedDate) {
-        bookingCodeToSend = `${bookingCodeToSend}/${selectedDate.date.toISOString().split('T')[0]}`;
+        // Use the actual booking code from the selected date's delivery windows
+        if (selectedDate.deliveryWindows && selectedDate.deliveryWindows.length > 0) {
+          // Use the first available delivery window's booking code
+          bookingCodeToSend = selectedDate.deliveryWindows[0].bookingCode;
+          console.log('Using nominated day booking code:', bookingCodeToSend);
+        } else {
+          throw new Error('No delivery window available for selected date.');
+        }
+      } else {
+        // For other delivery sub-options (standard, timed), keep your existing logic for now
+        bookingCodeToSend = selectedDeliverySubOption.bookingCode;
       }
     } else if (selectedDeliveryMethod) {
       bookingCodeToSend = selectedDeliveryMethod.bookingCode;
     } else {
-      throw new Error('No valid delivery method or collection option selected. Please select a delivery or collection method.');
+      throw new Error('No valid delivery method or collection option selected.');
     }
-    
-    // Create a summary of ordered items
-    const itemCount = products.length;
-    const itemSummary = itemCount > 1 
-      ? `${itemCount} items including ${products[0].title}`
-      : products[0].title;
       
-    // Create detailed items array for the API
+    console.log('Final booking code to send:', bookingCodeToSend);
+
+      // Create a summary of ordered items
+      const itemCount = cartItems.length;
+      const itemSummary = itemCount > 1 
+        ? `${itemCount} items including ${products[0].title}`
+        : products[0].title;
+      
+    // items array for the API
     const itemsDetails = products.map((product, index) => ({
       itemRef: `item-${index + 1}`,
       description: `${product.title} (${product.color}, ${product.size})`,
@@ -474,6 +580,8 @@ const handleSubmit = async (formSubmitEvent) => {
       item_ordered: itemSummary, // Summary for backward compatibility 
       items_details: itemsDetails // Detailed array of all products
     };
+
+     console.log('Order data being sent:', orderData)
     
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
@@ -502,6 +610,7 @@ const emailResponse = await fetch('/api/email/send', {
         totals: orderTotals,
         deliveryMethod: selectedDeliveryMethod,
         deliverySubOption: selectedDeliverySubOption,
+        selectedDate: selectedDate,
         pudoOption: selectedPudoOption,
         shippingLabel: labelData
       },
@@ -523,6 +632,7 @@ const emailResponse = await fetch('/api/email/send', {
     router.push('/confirmation');
   } catch (error) {
     console.error('Error:', error.message);
+    alert(`Order submission failed: ${error.message}`)
   }
 };
 
@@ -811,7 +921,7 @@ const emailResponse = await fetch('/api/email/send', {
                         <div className="grid grid-cols-7 gap-2">
                           {availableDates.map((day, index) => (
                             <button
-                              key={index}
+                              key={`calendar-date-${day.date.getTime()}-${index}`}
                               type="button"
                               onClick={() => day.isAvailable ? handleDateSelection(day) : null}
                               disabled={!day.isAvailable}
@@ -826,6 +936,11 @@ const emailResponse = await fetch('/api/email/send', {
                                 transition-colors duration-200
                               `}
                             >
+                            {/* Show booking code indicator for real API data */}
+                            {day.bookingCode && (
+                              <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                            )}
+
                             {/* Diagonal line for unavailable dates */}
                             {!day.isAvailable && (
                               <div className="absolute inset-0 flex items-center justify-center">
