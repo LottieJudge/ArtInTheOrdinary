@@ -9,7 +9,7 @@ export async function GET(request) {
     const deliverySlots = getNext14Days();
 
     const url = new URL('https://dmo.metapack.com/dmoptions/find');
-    url.searchParams.set('key', process.env.METAPACK_DMO_KEY);
+    url.searchParams.set('key', process.env.METAPACK_DDO_KEY);
     url.searchParams.set('wh_code', 'DELTA_Maison');
     url.searchParams.set('wh_pc', warehousePostcode);
     url.searchParams.set('wh_cc', 'GBR');

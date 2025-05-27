@@ -8,7 +8,7 @@ export async function GET(request) {
   try {
     let url = 'https://dmo.metapack.com/dmoptions/find';
     const params = new URLSearchParams({
-      key: process.env.METAPACK_API_KEY,
+      key: process.env.METAPACK_DDO_KEY,
       wh_code: 'DELTA_Maison',
       optionType: 'PUDO',
       r_t: 'lsc',
