@@ -2,6 +2,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const postcode = searchParams.get('postcode') || 'E20 2ST';
+    const deliveryType = searchParams.get('type') || 'both';
     const warehousePostcode = 'EC3V 0HR';
     
     // Generate next 14 days for query
@@ -19,6 +20,21 @@ export async function GET(request) {
     url.searchParams.set('optionType', 'HOME');
     url.searchParams.set('incgrp', 'Nominated');
     url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
+
+    //group codes based on what we want to fetch
+    if (deliveryType === 'standard') {
+      url.searchParams.set('incgrp', 'STANDARD');
+    } else if (deliveryType === 'nominated') {
+      url.searchParams.set('incgrp', 'NOMINATED');
+    } else {
+      url.searchParams.set('incgrp', 'STANDARD,NOMINATED'); // Fetch both
+    }
+
+     // Logic to add delivery slots for nominated day queries
+    if (deliveryType === 'nominated' || deliveryType === 'both') {
+      url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
+    }
+
 
     console.log('Metapack URL:', url.toString());
     
@@ -40,34 +56,44 @@ export async function GET(request) {
     }
     
     // Extract just the available delivery windows from the response
-    const availableDeliveryWindows = data.results
+    const deliveryOptions = data.results
       ? data.results
           .filter(option => {
             console.log('Processing option:', {
               bookingCode: option.bookingCode,
               groupCodes: option.groupCodes,
-              delivery: option.delivery
+              delivery: option.delivery,
+              optionType: option.optionType
             });
             
-            // Check if this is a valid delivery option with dates
-            return option.delivery && 
-                   option.delivery.from && 
-                   option.delivery.to &&
-                   option.optionType === 'HOME';
+            return option.optionType === 'HOME';
           })
           .map(option => ({
-            from: option.delivery.from,
-            to: option.delivery.to,
+            from: option.delivery?.from,
+            to: option.delivery?.to,
             bookingCode: option.bookingCode,
             carrierServiceCode: option.carrierServiceCode,
-            fullName: option.fullName
+            fullName: option.fullName,
+            groupCodes: option.groupCodes,
+            shippingCost: option.shippingCost
           }))
       : [];
 
-    console.log(`Found ${availableDeliveryWindows.length} available delivery windows`);
+    console.log(`Found ${deliveryOptions.length} available delivery windows`);
+
+     // Separate standard and nominated options
+    const standardOptions = deliveryOptions.filter(option => 
+      option.groupCodes?.includes('STANDARD')
+    );
+    
+    const nominatedOptions = deliveryOptions.filter(option => 
+      option.groupCodes?.includes('NOMINATED')
+    );
 
     return Response.json({ 
-      availableDates: availableDeliveryWindows,
+      standardOptions: standardOptions,
+      nominatedOptions: nominatedOptions,
+      availableDates: nominatedOptions, // Keep this for backward compatibility
       requestedDates: deliverySlots,
       postcode: postcode
 

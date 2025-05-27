@@ -180,11 +180,11 @@ export default function CheckOut() {
   const [selectedPudoOption, setSelectedPudoOption] = useState(null);
   const [searchCenter, setSearchCenter] = useState(null);
   // Delivery sub-options 
-  const deliverySubOptions = [
+  const [deliverySubOptions, setDeliverySubOptions] = useState ([
     { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
     { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
     { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
-  ];
+  ]);
 
   const [orderTotals, setOrderTotals] = useState({
     subtotal: 0,
@@ -461,7 +461,46 @@ const getNext14Days = (deliveryWindows = []) => {
     fetchDeliveryOptions();
   }, []);
 
-
+  // Fetch Delivery Options
+const fetchStandardDeliveryOptions = async () => {
+  try {
+    const customerPostcode = formData.post_code || 'E20 2ST';
+    
+    console.log('Fetching standard delivery options for postcode:', customerPostcode);
+    
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&type=standard`);
+    const data = await response.json();
+    
+    console.log('Standard delivery API response:', data);
+    
+    if (data.standardOptions && data.standardOptions.length > 0) {
+      // Use the cheapest option by default
+      const cheapestOption = data.standardOptions.reduce((prev, current) => 
+        (prev.shippingCost < current.shippingCost) ? prev : current
+      );
+      
+      // Update the delivery sub-options with carrier service code (NOT full booking code)
+      setDeliverySubOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.id === 'standard') {
+            return {
+              ...option,
+              bookingCode: cheapestOption.carrierServiceCode, // Use carrierServiceCode for standard
+              fullBookingCode: cheapestOption.bookingCode, // Store full for reference
+              price: `£${cheapestOption.shippingCost?.toFixed(2) || '5.95'}`,
+              carrierService: cheapestOption.fullName
+            };
+          }
+          return option;
+        })
+      );
+      
+      console.log('Updated standard delivery option with carrier service code:', cheapestOption.carrierServiceCode);
+    }
+  } catch (error) {
+    console.error('Error fetching standard delivery options:', error);
+  }
+};
 
   function getDeliveryWindow({ from, to }) {
     if (!from || !to) return '';
@@ -506,21 +545,20 @@ const getNext14Days = (deliveryWindows = []) => {
     size: '',
   })
 
-  useEffect(() => {
-  // If nominated day is selected and postcode is entered, refresh the available dates
-  if (selectedDeliverySubOption?.id === 'nominated' && formData.post_code && formData.post_code.length >= 5) {
-    console.log('Postcode changed, refetching nominated days for:', formData.post_code);
-    fetchNominatedDays();
+useEffect(() => {
+  // When postcode changes, fetch delivery options for both standard and nominated
+  if (formData.post_code && formData.post_code.length >= 5) {
+    console.log('Postcode changed, fetching delivery options for:', formData.post_code);
+    
+    // Fetch standard delivery options
+    fetchStandardDeliveryOptions();
+    
+    // If nominated day is selected, also refresh nominated options
+    if (selectedDeliverySubOption?.id === 'nominated') {
+      fetchNominatedDays();
+    }
   }
 }, [formData.post_code, selectedDeliverySubOption]);
-
-// ... then your existing fetchDeliveryOptions useEffect continues
-useEffect(() => {
-  async function fetchDeliveryOptions() {
-    // ... existing code
-  }
-  fetchDeliveryOptions();
-}, []);
 
 
   const handleChange = (inputEvent) => {
@@ -546,8 +584,16 @@ useEffect(() => {
         } else {
           throw new Error('No delivery window available for selected date.');
         }
+      } else if (selectedDeliverySubOption.id === 'standard') {
+        if (selectedDeliverySubOption.bookingCode) {
+          bookingCodeToSend = selectedDeliverySubOption.bookingCode;
+          console.log('Using standard delivery booking code:', bookingCodeToSend);
+        } else {
+          throw new Error('No booking code available for standard delivery.');
+        }
+      
       } else {
-        // For other delivery sub-options (standard, timed), keep your existing logic for now
+        // For other delivery sub-options (standard)
         bookingCodeToSend = selectedDeliverySubOption.bookingCode;
       }
     } else if (selectedDeliveryMethod) {
@@ -555,10 +601,8 @@ useEffect(() => {
     } else {
       throw new Error('No valid delivery method or collection option selected.');
     }
-      
-    console.log('Final booking code to send:', bookingCodeToSend);
-
       // Create a summary of ordered items
+      console.log('Final booking code to send:', bookingCodeToSend);
       const itemCount = cartItems.length;
       const itemSummary = itemCount > 1 
         ? `${itemCount} items including ${products[0].title}`
@@ -630,11 +674,12 @@ const emailResponse = await fetch('/api/email/send', {
     
     console.log('Order submitted successfully');
     router.push('/confirmation');
-  } catch (error) {
+      } catch (error) {
     console.error('Error:', error.message);
-    alert(`Order submission failed: ${error.message}`)
-  }
-};
+    alert(`Order submission failed: ${error.message}`);
+    }
+  };
+ 
 
   return (
     <div className="bg-gray-50">
