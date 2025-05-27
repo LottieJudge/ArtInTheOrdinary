@@ -25,14 +25,19 @@ export async function POST(req) {
         "United Kingdom": "GBR",
         };
 
+    const carrierServiceCode = bookingCode.includes('/')
+      ? bookingCode.split('/')[0]
+      : bookingCode;
+
+
     const parcelItems = items_details
-  ? items_details.map(item => ({
+      ? items_details.map(item => ({
       itemRef: item.itemRef,
       description: item.description,
       quantity: item.quantity || 1,
       countryOfOrigin: "GBR"
-    }))
-  : [{
+     }))
+    : [{
       itemRef: "item-001",
       description: item_ordered,
       quantity: 1,
@@ -91,21 +96,15 @@ export async function POST(req) {
             amount: 20,
             currencyCode: "GBP"
             },
-            items: [
-            {
-            itemRef: "item-001",
-            description: "Focus Card",
-            quantity: 1,
-            countryOfOrigin: "GBR"
-            },
-        ]
+            
+            items: parcelItems,
     }        
 ],    
           
         type: "delivery"
         },
             shippingRules: {
-            carrierServices: [bookingCode]
+            carrierServices: [carrierServiceCode]
         },
       paperwork: {
         format: "zpl",
