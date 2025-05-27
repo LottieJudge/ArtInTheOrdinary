@@ -179,6 +179,10 @@ export default function CheckOut() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPudoOption, setSelectedPudoOption] = useState(null);
   const [searchCenter, setSearchCenter] = useState(null);
+  // Loading
+  const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(false);
+  const [isDeliveryDataReady, setIsDeliveryDataReady] = useState(false);
+
   // Delivery sub-options 
   const [deliverySubOptions, setDeliverySubOptions] = useState ([
     { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
@@ -319,6 +323,9 @@ export default function CheckOut() {
 
   const fetchNominatedDays = async () => {
   try {
+    
+    setIsLoadingDeliveryOptions(true);
+    setIsDeliveryDataReady(false);
     // Use the customer's postcode from the form, fallback to default
     const customerPostcode = formData.post_code || 'E20 2ST';
     
@@ -342,10 +349,12 @@ export default function CheckOut() {
       // Show all dates as unavailable - pass empty array so all dates show as unavailable
       setAvailableDates(getNext14Days([]));
     }
+   setIsDeliveryDataReady(true);
   } catch (error) {
     console.error('Error fetching nominated days:', error);
-    // On error, show all dates as unavailable - don't give false hope
     setAvailableDates(getNext14Days([]));
+  } finally {
+    setIsLoadingDeliveryOptions(false);
   }
 };
 
@@ -568,6 +577,12 @@ useEffect(() => {
 
   const handleSubmit = async (formSubmitEvent) => {
     formSubmitEvent.preventDefault();
+
+    // Check if delivery data is still loading
+  if (isLoadingDeliveryOptions) {
+    console.log('Please wait, delivery options are still loading...');
+    return;
+  }
     
     try {
       let bookingCodeToSend;
@@ -1240,11 +1255,16 @@ const emailResponse = await fetch('/api/email/send', {
               </dl>
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
                   <button
-                  type="submit"
-                  className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
+                    type="submit"
+                    disabled={isLoadingDeliveryOptions}
+                    className={`w-full rounded-md border border-transparent ${
+                      isLoadingDeliveryOptions 
+                        ? 'bg-indigo-400 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-indigo-700'
+                    } px-4 py-3 text-base font-medium text-white shadow-xs focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden`}
                   >
-                  Confirm order
-                </button>
+                    {isLoadingDeliveryOptions ? 'Loading delivery options...' : 'Confirm order'}
+                  </button>
               </div>
             </div>
           </div>
