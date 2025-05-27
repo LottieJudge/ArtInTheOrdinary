@@ -187,7 +187,7 @@ This project is optimized for deployment on [Vercel](https://vercel.com/):
 
 ## 📄 License
 
-This project is private and proprietary to maison-metapack Fashion a subsidory of Metapack & Auctane.
+This project is private and proprietary to maison-metapack Fashion.
 
 ## 📞 Support
 
