@@ -227,7 +227,6 @@ export default function CheckOut() {
 
     if (deliveryMethod.title === 'Delivery') {
       setShowDeliverySubOptions(true);
-      setSelectedDeliverySubOption(deliverySubOptions[0]);
       setShowCollectionSearch(false); // Hide collection search
       setPudoOptions([]); // Clear PUDO options
       setSelectedPudoOption(null); // Clear selected PUDO option
@@ -577,6 +576,11 @@ useEffect(() => {
 
   const handleSubmit = async (formSubmitEvent) => {
     formSubmitEvent.preventDefault();
+
+    if (showDeliverySubOptions && !selectedDeliverySubOption) {
+    alert('Please select a delivery option.');
+    return;
+  }
 
     // Check if delivery data is still loading
   if (isLoadingDeliveryOptions) {
