@@ -8,7 +8,9 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
+import { clearCart } from '../context/CartContext';
 import { createClient } from '@supabase/supabase-js';
+
 // supa envs 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -731,6 +733,7 @@ const emailResponse = await fetch('/api/email/send', {
     }
     
     console.log('Order submitted successfully');
+    clearCart();
     router.push('/confirmation');
       } catch (error) {
     console.error('Error:', error.message);

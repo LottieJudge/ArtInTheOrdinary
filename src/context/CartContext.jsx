@@ -100,6 +100,10 @@ export function CartProvider({ children }) {
     }).format(price)
   }
 
+  const clearCart = () => {
+    setCartItems([])
+  }
+
   return (
     <CartContext.Provider value={{ 
       cartItems, 
