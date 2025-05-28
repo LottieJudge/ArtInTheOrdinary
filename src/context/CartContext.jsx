@@ -100,6 +100,10 @@ export function CartProvider({ children }) {
     }).format(price)
   }
 
+  const clearCart = () => {
+    setCartItems([])
+  }
+
   return (
     <CartContext.Provider value={{ 
       cartItems, 
@@ -110,7 +114,8 @@ export function CartProvider({ children }) {
       cartSubtotal,
       cartVAT,
       cartTotal,
-      formatPrice
+      formatPrice,
+      clearCart
     }}>
       {children}
     </CartContext.Provider>

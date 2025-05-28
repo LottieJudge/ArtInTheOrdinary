@@ -9,6 +9,14 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
 
+import { createClient } from '@supabase/supabase-js';
+
+// supa envs 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+
 const products = [
   {
     id: 1,
@@ -164,7 +172,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
 }
 
 export default function CheckOut() {
-  const { cartItems, cartTotal, cartSubtotal, cartVAT } = useCart();
+  const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -631,28 +639,50 @@ useEffect(() => {
     const itemsDetails = products.map((product, index) => ({
       itemRef: `item-${index + 1}`,
       description: `${product.title} (${product.color}, ${product.size})`,
-      quantity: 1, // Ideally this would come from the product quantity
+      quantity: 1, 
       value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
     }));
     
     // Add product information to form data
-    const orderData = {
-      ...formData,
-      bookingCode: bookingCodeToSend,
+    
+    const { data: orderData, error: orderError } = await supabase
+    .from('CustomerInfo')
+    .insert([{
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email_address: formData.email_address,
+      company_name: formData.company_name,
+      firstLine_address: formData.firstLine_address,
+      house_apartment_number: formData.house_apartment_number,
+      city: formData.city,
       country: formData.country,
-      item_ordered: itemSummary, // Summary for backward compatibility 
-      items_details: itemsDetails // Detailed array of all products
-    };
-
-     console.log('Order data being sent:', orderData)
+      state_province: formData.state_province,
+      post_code: formData.post_code,
+      phone_number: formData.phone_number,
+      item_ordered: JSON.stringify(cartItems),
+      size: cartItems[0]?.size || ''
+    }])
+    if (orderError) {
+      console.error('Supabase insert error:', orderError);
+    }
+    
     
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
       method: 'POST',
-      body: JSON.stringify(orderData),
+      // again this needed to work with the supabase info so had to bulk out 
+      body: JSON.stringify({
+        ...formData,
+        bookingCode: bookingCodeToSend,
+        cartItems,
+        selectedDate,
+        selectedDeliveryMethod,
+        selectedDeliverySubOption,
+        selectedPudoOption,
+      }),
       headers: { 'Content-Type': 'application/json' }
     });
-
+    console.log("Label Response" + labelResponse)
     console.log('Production debug - Label response status:', labelResponse.status);
     
     if (!labelResponse.ok) {
@@ -701,8 +731,9 @@ const emailResponse = await fetch('/api/email/send', {
     if (!emailResponse.ok) {
       throw new Error('Failed to send confirmation email');
     }
-    
+
     console.log('Order submitted successfully');
+    clearCart();
     router.push('/confirmation');
       } catch (error) {
     console.error('Error:', error.message);
