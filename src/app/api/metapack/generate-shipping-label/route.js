@@ -3,6 +3,7 @@
 export async function POST(req) {
   try {
     const body = await req.json();
+    console.log('Production debug - Request body received:', JSON.stringify(body, null, 2));
 
     const {
       first_name,
@@ -21,6 +22,9 @@ export async function POST(req) {
       bookingCode
     } = body;
 
+    console.log('Production debug - Booking code extracted:', bookingCode);
+
+
     const countryMap = {
         "United Kingdom": "GBR",
         };
@@ -29,6 +33,7 @@ export async function POST(req) {
       ? bookingCode.split('/')[0]
       : bookingCode;
 
+      console.log('Production debug - Carrier service code:', carrierServiceCode);
 
     const parcelItems = items_details
       ? items_details.map(item => ({
@@ -44,6 +49,7 @@ export async function POST(req) {
       countryOfOrigin: "GBR"
     }];
 
+    console.log('Production debug - Parcel items:', JSON.stringify(parcelItems, null, 2));
 
     const consignmentPayload = {
       consignment: {
@@ -113,7 +119,9 @@ export async function POST(req) {
       }
     };
 
-    console.log('Auth header being sent:', process.env.METAPACK_SAPI_BASIC_AUTH);
+    console.log('Production debug - Full payload being sent:', JSON.stringify(consignmentPayload, null, 2));
+    console.log('Production debug - Auth header:', process.env.METAPACK_SAPI_BASIC_AUTH ? 'Present' : 'Missing');
+    console.log('Production debug - API URL:', "https://api.sbx.metapack.com/shipping/v1/consignment-with-paperwork");
 
     const response = await fetch("https://api.sbx.metapack.com/shipping/v1/consignment-with-paperwork", {
       method: "POST",
@@ -124,22 +132,27 @@ export async function POST(req) {
       body: JSON.stringify(consignmentPayload)
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Metapack error:", errorData);
-      return new Response(JSON.stringify({ error: "Failed to generate label", details: errorData }), {
-        status: 500
-      });
-    }
+    console.log('Production debug - Response status:', response.status);
+    console.log('Production debug - Response headers:', Object.fromEntries(response.headers.entries()));
+
 
     const data = await response.json();
+    console.log('Production debug - Success response:', JSON.stringify(data, null, 2));
     return new Response(JSON.stringify(data), {
-      status: 200
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
     });
+
   } catch (error) {
-    console.error("Unexpected error:", error);
-    return new Response(JSON.stringify({ error: "Unexpected server error" }), {
-      status: 500
+    console.error('Production debug - Unexpected error:', error);
+    console.error('Production debug - Error stack:', error.stack);
+    return new Response(JSON.stringify({ 
+      error: "Unexpected server error",
+      details: error.message,
+      stack: error.stack
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
     });
   }
 }

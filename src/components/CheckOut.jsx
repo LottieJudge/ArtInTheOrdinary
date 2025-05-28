@@ -652,13 +652,24 @@ useEffect(() => {
       body: JSON.stringify(orderData),
       headers: { 'Content-Type': 'application/json' }
     });
+
+    console.log('Production debug - Label response status:', labelResponse.status);
     
     if (!labelResponse.ok) {
-      throw new Error('Failed to generate shipping label');
+      const errorText = await labelResponse.text();
+      console.error('Production debug - Label response error:', errorText);
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        console.error('Production debug - Parsed error data:', errorData);
+        throw new Error(`Shipping label failed: ${errorData.error}. Details: ${JSON.stringify(errorData.details)}`);
+      } catch (parseError) {
+        throw new Error(`Shipping label failed with status ${labelResponse.status}. Response: ${errorText}`);
+      }
     }
-    
+
     const labelData = await labelResponse.json();
-    console.log('Shipping label generated:', labelData);
+    console.log('Production debug - Shipping label generated:', labelData);
     
     // send confirmation email with Resend
 const emailResponse = await fetch('/api/email/send', {
