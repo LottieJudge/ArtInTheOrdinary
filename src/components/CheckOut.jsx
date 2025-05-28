@@ -8,6 +8,9 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+
+const supabase = createClientComponentClient()
 
 const products = [
   {
@@ -631,19 +634,29 @@ useEffect(() => {
     const itemsDetails = products.map((product, index) => ({
       itemRef: `item-${index + 1}`,
       description: `${product.title} (${product.color}, ${product.size})`,
-      quantity: 1, // Ideally this would come from the product quantity
+      quantity: 1, 
       value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
     }));
     
     // Add product information to form data
-    const orderData = {
-      ...formData,
-      bookingCode: bookingCodeToSend,
+    
+    const { data: orderData, error: orderError } = await supabase
+    .from('orders')
+    .insert([{
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email_address: formData.email_address,
+      company_name: formData.company_name,
+      firstLine_address: formData.firstLine_address,
+      house_apartment_number: formData.house_apartment_number,
+      city: formData.city,
       country: formData.country,
-      item_ordered: itemSummary, // Summary for backward compatibility 
-      items_details: itemsDetails // Detailed array of all products
-    };
-
+      state_province: formData.state_province,
+      post_code: formData.post_code,
+      phone_number: formData.phone_number,
+      item_ordered: JSON.stringify(cartItems),
+      size: cartItems[0]?.size || ''
+    }])
      console.log('Order data being sent:', orderData)
     
     // generate the shipping label
