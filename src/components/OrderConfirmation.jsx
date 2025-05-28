@@ -1,22 +1,12 @@
-"use Client"
+"use client"
+import { useCart } from '@/context/CartContext'
+import Image from 'next/image'
 
 
 
-const products = [
-  {
-    id: 1,
-    name: 'Cold Brew Bottle',
-    description:
-      'This glass bottle comes with a mesh insert for steeping tea or cold-brewing coffee. Pour from any angle and remove the top for easy cleaning.',
-    href: '#',
-    quantity: 1,
-    price: '$32.00',
-    imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/confirmation-page-05-product-01.jpg',
-    imageAlt: 'Glass bottle with black plastic pour top and mesh insert.',
-  },
-]
+export default function OrderConfirmation() {
+  const {cartItems = []} = useCart();
 
-export default function Example() {
   return (
     <div className="bg-white">
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
@@ -35,29 +25,31 @@ export default function Example() {
           <h2 className="sr-only">Your order</h2>
 
           <h3 className="sr-only">Items</h3>
-          {products.map((product) => (
-            <div key={product.id} className="flex space-x-6 border-b border-gray-200 py-10">
-              <img
-                alt={product.imageAlt}
-                src={product.imageSrc}
+          {cartItems.map((item, index) => (
+            <div key={item.cartItemKey || index} className="flex space-x-6 border-b border-gray-200 py-10">
+              <Image
+                alt={item.imageAlt}
+                src={item.imageSrc}
+                width={160}
+                height={160}
                 className="size-20 flex-none rounded-lg bg-gray-100 object-cover sm:size-40"
               />
               <div className="flex flex-auto flex-col">
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    <a href={product.href}>{product.name}</a>
+                    {item.name}
                   </h4>
-                  <p className="mt-2 text-sm text-gray-600">{product.description}</p>
+                  <p className="mt-2 text-sm text-gray-600">{item.description}</p>
                 </div>
                 <div className="mt-6 flex flex-1 items-end">
                   <dl className="flex divide-x divide-gray-200 text-sm">
                     <div className="flex pr-4 sm:pr-6">
                       <dt className="font-medium text-gray-900">Quantity</dt>
-                      <dd className="ml-2 text-gray-700">{product.quantity}</dd>
+                      <dd className="ml-2 text-gray-700">{item.quantity}</dd>
                     </div>
                     <div className="flex pl-4 sm:pl-6">
                       <dt className="font-medium text-gray-900">Price</dt>
-                      <dd className="ml-2 text-gray-700">{product.price}</dd>
+                      <dd className="ml-2 text-gray-700">{item.price}</dd>
                     </div>
                   </dl>
                 </div>
