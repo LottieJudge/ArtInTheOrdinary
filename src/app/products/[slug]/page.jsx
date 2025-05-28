@@ -9,7 +9,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const product = Object.values(products).find((p) => p.slug === params.slug);
+  const resolvedParams = await params;
+  const product = Object.values(products).find((p) => p.slug === resolvedParams.slug);
   if (!product) return {};
   return {
     title: product.name,
@@ -17,8 +18,9 @@ export async function generateMetadata({ params }) {
   };
 }
 
-export default function ProductPage({ params }) {
-  const product = Object.values(products).find((p) => p.slug === params.slug);
+export default async function ProductPage({ params }) {
+  const resolvedParams = await params;
+  const product = Object.values(products).find((p) => p.slug === resolvedParams.slug);
   if (!product) return notFound();
 
   return <ProductDetail product={product} />;
