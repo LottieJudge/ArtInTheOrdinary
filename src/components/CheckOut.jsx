@@ -9,7 +9,6 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
 import { createClient } from '@supabase/supabase-js';
-
 // supa envs 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -669,10 +668,19 @@ useEffect(() => {
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
       method: 'POST',
-      body: JSON.stringify(orderData),
+      // again this needed to work with the supabase info so had to bulk out 
+      body: JSON.stringify({
+        ...formData,
+        bookingCode: bookingCodeToSend,
+        cartItems,
+        selectedDate,
+        selectedDeliveryMethod,
+        selectedDeliverySubOption,
+        selectedPudoOption,
+      }),
       headers: { 'Content-Type': 'application/json' }
     });
-
+    console.log("Label Response" + labelResponse)
     console.log('Production debug - Label response status:', labelResponse.status);
     
     if (!labelResponse.ok) {
