@@ -8,9 +8,13 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClientComponentClient()
+// supa envs 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 const products = [
   {
@@ -641,7 +645,7 @@ useEffect(() => {
     // Add product information to form data
     
     const { data: orderData, error: orderError } = await supabase
-    .from('orders')
+    .from('CustomerInfo')
     .insert([{
       first_name: formData.first_name,
       last_name: formData.last_name,
@@ -657,7 +661,10 @@ useEffect(() => {
       item_ordered: JSON.stringify(cartItems),
       size: cartItems[0]?.size || ''
     }])
-     console.log('Order data being sent:', orderData)
+    if (orderError) {
+      console.error('Supabase insert error:', orderError);
+    }
+    
     
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
