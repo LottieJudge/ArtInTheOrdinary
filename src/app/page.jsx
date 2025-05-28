@@ -10,51 +10,51 @@ export default function HomePage() {
   const products = [
     {
       id: 1,
-      name: 'Orange Bomber Jacket',
+      name: 'Maison Metapack Black Cap',
       href: "/products/orange-bomber",
-      price: '£39.99',
-      imageSrc: '/images/jacket.jpg',
-      imageAlt: 'Orangge bomber jacket',
+      price: '£24.99',
+      imageSrc: '/images/blackcap1.png',
+      imageAlt: 'Maison Metapack Black Cap',
     },
     {
       id: 2,
-      name: 'knitted poncho',
+      name: 'Maison Metapack Black Tee',
       href: '#',
-      price: '£59.99',
-      imageSrc: '/images/poncho.jpg',
-      imageAlt: 'knitted poncho',
+      price: '£24.99',
+      imageSrc: '/images/blacktee1.png',
+      imageAlt: 'Maison Metapack Black Tee',
     },
     {
       id: 3,
-      name: 'three pack of t-shirts',
+      name: 'Maison Metapack Black Hoodie',
       href: '#',
-      price: '£24.99',
-      imageSrc: '/images/tshirts.jpg',
-      imageAlt: 'three pack of t-shirts',
+      price: '£59.99',
+      imageSrc: '/images/blackhoodie1.png',
+      imageAlt: 'Maison Metapack Black Hoodie',
     },
     {
       id: 4,
-      name: 'Orange Bomber Jacket',
-      href: "/products/orange-bomber",
-      price: '£39.99',
-      imageSrc: '/images/jacket.jpg',
-      imageAlt: 'Orangge bomber jacket',
+      name: 'Maison Metapack Grey Tee',
+      href: "#",
+      price: '£24.99',
+      imageSrc: '/images/greytee1.png',
+      imageAlt: 'Maison Metapack Grey Tee',
     },
     {
       id: 5,
-      name: 'knitted poncho',
+      name: 'Maison Metapack Grey Hoodie',
       href: '#',
       price: '£59.99',
-      imageSrc: '/images/poncho.jpg',
-      imageAlt: 'knitted poncho',
+      imageSrc: '/images/greyhoodie1.png',
+      imageAlt: 'Maison Metapack Grey Hoodie',
     },
     {
       id: 6,
-      name: 'three pack of t-shirts',
+      name: 'Coming soon',
       href: '#',
-      price: '£24.99',
-      imageSrc: '/images/tshirts.jpg',
-      imageAlt: 'three pack of t-shirts',
+      price: '',
+      imageSrc: '/images/coming.png',
+      imageAlt: 'Coming soon Maison Metapack "Pack Club Crew jumper"',
     },
   ];
   return (
@@ -62,7 +62,7 @@ export default function HomePage() {
     <Hero
       title=""
       description=""
-      image="/images/hero.jpg"
+      image="/images/hero.png"
     />
     <HeroExplainer
       products={products}
