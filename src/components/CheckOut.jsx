@@ -187,7 +187,7 @@ export default function CheckOut() {
   const [deliverySubOptions, setDeliverySubOptions] = useState ([
     { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
     { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
-    { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' },
+    // { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' }, hiding as not required for MVP
   ]);
 
   const [orderTotals, setOrderTotals] = useState({
