@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
-import { clearCart } from '../context/CartContext';
+
 import { createClient } from '@supabase/supabase-js';
 
 // supa envs 
@@ -172,7 +172,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
 }
 
 export default function CheckOut() {
-  const { cartItems, cartTotal, cartSubtotal, cartVAT } = useCart();
+  const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -731,7 +731,7 @@ const emailResponse = await fetch('/api/email/send', {
     if (!emailResponse.ok) {
       throw new Error('Failed to send confirmation email');
     }
-    
+
     console.log('Order submitted successfully');
     clearCart();
     router.push('/confirmation');

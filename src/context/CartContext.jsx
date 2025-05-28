@@ -114,7 +114,8 @@ export function CartProvider({ children }) {
       cartSubtotal,
       cartVAT,
       cartTotal,
-      formatPrice
+      formatPrice,
+      clearCart
     }}>
       {children}
     </CartContext.Provider>
