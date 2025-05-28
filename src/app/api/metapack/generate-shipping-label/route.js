@@ -28,7 +28,11 @@ export async function POST(req) {
     const countryMap = {
         "United Kingdom": "GBR",
         };
-
+  // had to add in as the booking code was stopping supabase working with the metapack apis - too many api's 
+     if (!bookingCode || typeof bookingCode !== 'string') {
+        throw new Error(`bookingCode is missing or not a string: ${bookingCode}`);
+       }
+    
     const carrierServiceCode = bookingCode.includes('/')
       ? bookingCode.split('/')[0]
       : bookingCode;
