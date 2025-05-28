@@ -11,7 +11,7 @@ export default function HomePage() {
     {
       id: 1,
       name: 'Maison Metapack Black Cap',
-      href: "/products/orange-bomber",
+      href: "/products/black-cap",
       price: '£24.99',
       imageSrc: '/images/blackcap1.png',
       imageAlt: 'Maison Metapack Black Cap',
@@ -19,7 +19,7 @@ export default function HomePage() {
     {
       id: 2,
       name: 'Maison Metapack Black Tee',
-      href: '#',
+      href: '/products/black-tee',
       price: '£24.99',
       imageSrc: '/images/blacktee1.png',
       imageAlt: 'Maison Metapack Black Tee',
@@ -27,7 +27,7 @@ export default function HomePage() {
     {
       id: 3,
       name: 'Maison Metapack Black Hoodie',
-      href: '#',
+      href: '/products/black-hoodie',
       price: '£59.99',
       imageSrc: '/images/blackhoodie1.png',
       imageAlt: 'Maison Metapack Black Hoodie',
@@ -35,7 +35,7 @@ export default function HomePage() {
     {
       id: 4,
       name: 'Maison Metapack Grey Tee',
-      href: "#",
+      href: "/products/grey-tee",
       price: '£24.99',
       imageSrc: '/images/greytee1.png',
       imageAlt: 'Maison Metapack Grey Tee',
@@ -43,7 +43,7 @@ export default function HomePage() {
     {
       id: 5,
       name: 'Maison Metapack Grey Hoodie',
-      href: '#',
+      href: '/products/grey-hoodie',
       price: '£59.99',
       imageSrc: '/images/greyhoodie1.png',
       imageAlt: 'Maison Metapack Grey Hoodie',
