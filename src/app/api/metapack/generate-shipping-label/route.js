@@ -19,10 +19,12 @@ export async function POST(req) {
       country,
       item_ordered,
       items_details,
+      cartItems,
       bookingCode
     } = body;
 
     console.log('Production debug - Booking code extracted:', bookingCode);
+    console.log('Production debug - Cart items received:', cartItems);
 
 
     const countryMap = {
@@ -39,19 +41,29 @@ export async function POST(req) {
 
       console.log('Production debug - Carrier service code:', carrierServiceCode);
 
-    const parcelItems = items_details
-      ? items_details.map(item => ({
-      itemRef: item.itemRef,
-      description: item.description,
-      quantity: item.quantity || 1,
-      countryOfOrigin: "GBR"
-     }))
-    : [{
-      itemRef: "item-001",
-      description: item_ordered,
-      quantity: 1,
-      countryOfOrigin: "GBR"
-    }];
+        const parcelItems = cartItems && cartItems.length > 0
+      ? cartItems.map((item, index) => {
+          // Truncate description to max 50 characters (adjust as needed)
+          const maxLength = 50;
+          let description = item.description || item.name || 'Product';
+          
+          if (description.length > maxLength) {
+            description = description.substring(0, maxLength - 3) + '...';
+          }
+          
+          return {
+            itemRef: `item-${String(index + 1).padStart(3, '0')}`,
+            description: description,
+            quantity: item.quantity || 1,
+            countryOfOrigin: "GBR"
+          };
+        })
+      : [{
+          itemRef: "item-001",
+          description: item_ordered || 'Product',
+          quantity: 1,
+          countryOfOrigin: "GBR"
+        }];
 
     console.log('Production debug - Parcel items:', JSON.stringify(parcelItems, null, 2));
 

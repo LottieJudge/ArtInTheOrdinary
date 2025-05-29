@@ -9,15 +9,18 @@ import Image from 'next/image'
 
 
 
-export default function Basket() {
+  export default function Basket() {
     const { cartItems = [], removeFromCart, updateQuantity } = useCart() || {};
+    
+    // Fix subtotal calculation
     const subtotal = cartItems?.reduce((total, item) => {
-        const price = parseFloat(item?.price?.replace('£', '') || '0');
+        const price = typeof item.price === 'string' 
+            ? parseFloat(item.price.replace('£', '')) 
+            : item.price;
         return total + (price * (item?.quantity || 1));
     }, 0) || 0;
 
     const shipping = 5.95;
-    // const tax = subtotal * 0.08;
     const total = subtotal + shipping;
 
   return (

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
+import { products } from '@/data/products'
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -16,19 +17,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-
-const products = [
-  {
-    id: 1,
-    title: 'Basic Tee',
-    href: '#',
-    price: '£32.00',
-    color: 'Black',
-    size: 'Large',
-    imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/checkout-page-02-product-01.jpg',
-    imageAlt: "Front of men's Basic Tee in black.",
-  },
-]
 
 //Delivery options/sub-options, collection options
 function getDeliveryGroupLabel(groupCode) {
@@ -629,18 +617,36 @@ useEffect(() => {
     }
 
      console.log('Final booking code to send:', bookingCodeToSend);
-      const itemCount = cartItems.length;
-      const itemSummary = itemCount > 1 
-        ? `${itemCount} items including ${products[0].title}`
-        : products[0].title;
+
+     // ADD THIS ENRICHMENT CODE HERE - RIGHT AFTER booking code logic
+    const enrichedCartItems = cartItems.map(item => {
+      // Find the product data by matching name
+      const productKey = Object.keys(products).find(key => 
+        products[key].name === item.name
+      );
       
-    // items array for the API
-    const itemsDetails = products.map((product, index) => ({
-      itemRef: `item-${index + 1}`,
-      description: `${product.title} (${product.color}, ${product.size})`,
-      quantity: 1, 
-      value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
-    }));
+      const product = productKey ? products[productKey] : null;
+      
+      // Extract plain text description
+      const getPlainDescription = (htmlDesc) => {
+        if (!htmlDesc) return item.name;
+        return htmlDesc.replace(/<[^>]*>/g, '').trim();
+      };
+      
+      return {
+        ...item,
+        description: product ? getPlainDescription(product.description) : item.name,
+      };
+    });
+    
+    console.log('Enriched cart items with descriptions:', enrichedCartItems);
+    // END OF ENRICHMENT CODE
+
+      const itemCount = cartItems.length;
+      const firstItemName = cartItems[0]?.name || 'Item';
+      const itemSummary = itemCount > 1 
+        ? `${itemCount} items including ${firstItemName}`
+        : firstItemName;
     
     const { data: orderData, error: orderError } = await supabase
     .from('CustomerInfo')
@@ -670,7 +676,7 @@ useEffect(() => {
       body: JSON.stringify({
         ...formData,
         bookingCode: bookingCodeToSend,
-        cartItems,
+        cartItems: enrichedCartItems,
         selectedDate,
         selectedDeliveryMethod,
         selectedDeliverySubOption,
@@ -746,9 +752,10 @@ useEffect(() => {
       customerInfo: formData
     };
 
-    const encodedOrderData = encodeURIComponent(JSON.stringify(orderSummary));
+     // Store in sessionStorage instead of URL
+    sessionStorage.setItem('orderData', JSON.stringify(orderSummary));
     clearCart();
-    router.push(`/confirmation?order=${encodedOrderData}`);
+    router.push('/confirmation');
       } catch (error) {
     console.error('Error:', error.message);
     alert(`Order submission failed: ${error.message}`);
