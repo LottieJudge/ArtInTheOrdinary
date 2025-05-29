@@ -10,6 +10,7 @@ import {
   Img,
 } from '@react-email/components';
 
+
 export const OrderConfirmationEmail = ({
   firstName,
   orderDetails,
@@ -36,7 +37,7 @@ export const OrderConfirmationEmail = ({
       <Body style={main}>
         <Container style={headerContainer}>
           <Img
-            src="https://maisonmetapack.com/images/metapackLogo.png"
+            src="https://res.cloudinary.com/dzkf4iwrf/image/upload/v1748546735/metapackLogo_kjkipm.png"
             alt="Metapack Logo"
             width="180"
             style={logo}
@@ -118,7 +119,7 @@ export const OrderConfirmationEmail = ({
         
         <Container style={footer}>
           <Img
-            src="https://maisonmetapack.com/images/metapackLogo.png"
+            src="https://res.cloudinary.com/dzkf4iwrf/image/upload/v1748546735/metapackLogo_kjkipm.png"
             alt="Metapack Logo"
             width="140"
             style={footerLogo}
