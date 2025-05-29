@@ -35,10 +35,9 @@ export const OrderConfirmationEmail = ({
       <Preview>Your Maison Metapack order confirmation</Preview>
       <Body style={main}>
         <Container style={headerContainer}>
-          {/* place hplder until i have the logo */}
           <Img
-            src="cid:maison-metapack-logo"
-            alt="Maison Metapack"
+            src="https://maisonmetapack.com/images/Metapack-Logo.svg"
+            alt="Metapack Logo"
             width="180"
             style={logo}
           />
@@ -66,9 +65,11 @@ export const OrderConfirmationEmail = ({
             {shipping.city}<br />
             {shipping.postcode}<br /><br />
             <strong>Items:</strong><br />
-            {orderDetails.items.map((item) => (
-              `${item.name} – £${formatPrice(item.price)}`
-            )).join('<br />')}<br /><br />
+            {orderDetails.items.map((item, index) => (
+                <Text key={index} style={{ margin: 0 }}>
+                  {item.name} – £{formatPrice(item.price)}
+                </Text>
+              ))}
             <strong>Subtotal:</strong> £{formatPrice(orderDetails.totals.subtotal)}<br />
             <strong>Shipping:</strong> £{formatPrice(orderDetails.totals.shipping)}<br />
             <strong>Total:</strong> <strong>£{formatPrice(orderDetails.totals.total)}</strong>
@@ -117,7 +118,7 @@ export const OrderConfirmationEmail = ({
         
         <Container style={footer}>
           <Img
-            src="cid:metapack-logo"
+            src="https://maisonmetapack.com/images/Metapack-Logo.svg"
             alt="Metapack"
             width="140"
             style={footerLogo}
