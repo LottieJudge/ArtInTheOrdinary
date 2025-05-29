@@ -589,7 +589,6 @@ useEffect(() => {
     alert('Please select a delivery option.');
     return;
   }
-
     // Check if delivery data is still loading
   if (isLoadingDeliveryOptions) {
     console.log('Please wait, delivery options are still loading...');
@@ -628,8 +627,8 @@ useEffect(() => {
     } else {
       throw new Error('No valid delivery method or collection option selected.');
     }
-      // Create a summary of ordered items
-      console.log('Final booking code to send:', bookingCodeToSend);
+
+     console.log('Final booking code to send:', bookingCodeToSend);
       const itemCount = cartItems.length;
       const itemSummary = itemCount > 1 
         ? `${itemCount} items including ${products[0].title}`
@@ -642,8 +641,6 @@ useEffect(() => {
       quantity: 1, 
       value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
     }));
-    
-    // Add product information to form data
     
     const { data: orderData, error: orderError } = await supabase
     .from('CustomerInfo')
@@ -665,7 +662,6 @@ useEffect(() => {
     if (orderError) {
       console.error('Supabase insert error:', orderError);
     }
-    
     
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
@@ -700,41 +696,59 @@ useEffect(() => {
 
     const labelData = await labelResponse.json();
     console.log('Production debug - Shipping label generated:', labelData);
-    
-    // send confirmation email with Resend
-const emailResponse = await fetch('/api/email/send', {
-  method: 'POST',
-  body: JSON.stringify({
-    to: formData.email_address,
-    subject: 'Order Confirmation - Maison Metapack',
-    data: {
-      firstName: formData.first_name,
-      orderDetails: {
-        items: cartItems,
-        totals: orderTotals,
-        deliveryMethod: selectedDeliveryMethod,
-        deliverySubOption: selectedDeliverySubOption,
-        selectedDate: selectedDate,
-        pudoOption: selectedPudoOption,
-        shippingLabel: labelData
-      },
-      shipping: {
-        name: `${formData.first_name} ${formData.last_name}`,
-        address: formData.firstLine_address,
-        city: formData.city,
-        postcode: formData.post_code
-      }
-    }
-  }),
-  headers: { 'Content-Type': 'application/json' }
-});
-    if (!emailResponse.ok) {
-      throw new Error('Failed to send confirmation email');
-    }
+
+    const emailResponse = await fetch('/api/email/send', {
+      method: 'POST',
+      body: JSON.stringify({
+        to: formData.email_address,
+        subject: 'Order Confirmation - Maison Metapack',
+        data: {
+          firstName: formData.first_name,
+          orderDetails: {
+            items: cartItems,
+            totals: orderTotals,
+            deliveryMethod: selectedDeliveryMethod,
+            deliverySubOption: selectedDeliverySubOption,
+            selectedDate: selectedDate,
+            pudoOption: selectedPudoOption,
+            shippingLabel: labelData
+          },
+          shipping: {
+            name: `${formData.first_name} ${formData.last_name}`,
+            address: formData.firstLine_address,
+            city: formData.city,
+            postcode: formData.post_code
+          }
+        }
+      }),
+      headers: { 'Content-Type': 'application/json' }
+        });
+        if (!emailResponse.ok) {
+          throw new Error('Failed to send confirmation email');
+        }
 
     console.log('Order submitted successfully');
+
+    const orderSummary = {
+      items: cartItems.map(item => ({
+        ...item,
+        total: (typeof item.price === 'string' 
+          ? parseFloat(item.price.replace('£', '')) 
+          : item.price) * item.quantity
+      })),
+      totals: orderTotals,
+      delivery: {
+        method: selectedDeliveryMethod,
+        subOption: selectedDeliverySubOption,
+        date: selectedDate,
+        pudoOption: selectedPudoOption
+      },
+      customerInfo: formData
+    };
+
+    const encodedOrderData = encodeURIComponent(JSON.stringify(orderSummary));
     clearCart();
-    router.push('/confirmation');
+    router.push(`/confirmation?order=${encodedOrderData}`);
       } catch (error) {
     console.error('Error:', error.message);
     alert(`Order submission failed: ${error.message}`);
