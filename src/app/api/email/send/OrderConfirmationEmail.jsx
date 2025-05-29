@@ -36,7 +36,7 @@ export const OrderConfirmationEmail = ({
       <Body style={main}>
         <Container style={headerContainer}>
           <Img
-            src="https://maisonmetapack.com/images/Metapack-Logo.svg"
+            src="https://maisonmetapack.com/images/metapackLogo.png"
             alt="Metapack Logo"
             width="180"
             style={logo}
@@ -118,8 +118,8 @@ export const OrderConfirmationEmail = ({
         
         <Container style={footer}>
           <Img
-            src="https://maisonmetapack.com/images/Metapack-Logo.svg"
-            alt="Metapack"
+            src="https://maisonmetapack.com/images/metapackLogo.png"
+            alt="Metapack Logo"
             width="140"
             style={footerLogo}
           />
