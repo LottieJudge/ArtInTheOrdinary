@@ -15,13 +15,13 @@ export const products = {
         },
         {
             id: 2,
-            imageSrc: "/images/blackcap1.png",
+            imageSrc: "/images/blacktee1.png",
             imageAlt: "Back of the black tee",
             primary: false,
         },
         {
             id: 3,
-            imageSrc: "/images/blackcap1.png",
+            imageSrc: "/images/greyhoodie1.png",
             imageAlt: "side of the black tee",
             primary: false,
         },
