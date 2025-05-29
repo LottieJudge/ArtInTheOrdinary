@@ -3,17 +3,17 @@ import Image from "next/image";
 
 export default function Hero ({image, alt}) {
     return (
-      <div className="z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center sm:py-64 lg:px-0">
+      <div className="z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center sm:py-64 lg:py-110 lg:px-0">
             <Image
               src={image}
               alt={alt}
               fill
               priority
               className="object-cover object-center z-[-1]"
-              style={{ zIndex: -1 }}
+              style={{ zIndex: -1, objectPosition: 'center top' }}
             />
               
-            <div className="bg-white/25 backdrop-blur-sm p-8 rounded-lg shadow-md">
+           {/* <div className="bg-white/25 backdrop-blur-sm p-8 rounded-lg shadow-md">
             <h1 className="text-4xl font-bold tracking-tight text-black lg:text-6xl">New arrivals are here</h1>
             <p className="mt-4 text-xl text-black">
               The new arrivals have, well, newly arrived. Check out the latest options from our summer small-batch release
@@ -25,7 +25,7 @@ export default function Hero ({image, alt}) {
             >
               Shop New Arrivals
             </a>
-          </div>
+          </div> */}
         </div>
     );
   }

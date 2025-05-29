@@ -21,7 +21,7 @@ import { Bars3Icon, MagnifyingGlassIcon, ShoppingBagIcon, UserIcon, XMarkIcon } 
 import {useCart} from '@/context/CartContext'
 
 const navigation = {
-  categories: [
+/* categories: [
     {
       id: 'women',
       name: '',
@@ -200,12 +200,12 @@ const navigation = {
         ],
       ],
     },
-  ],
+  ], */
   pages: [
   {
     name: 'Brand',
     href: '#',
-    dropdown: true,
+    dropdown: true, 
     items: [
       { name: 'About', href: '/about' },
       { name: 'Lookbook', href: '/lookbook' }
@@ -213,7 +213,7 @@ const navigation = {
   },
   /* { name: 'Company', href: '#' }, */
 ]
-};
+}; 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
@@ -248,7 +248,7 @@ export default function Example() {
             </div>
 
             {/* Links */}
-            <TabGroup className="mt-2">
+            {/* <TabGroup className="mt-2">
               <div className="border-b border-gray-200">
                 <TabList className="-mb-px flex space-x-8 px-4">
                   {navigation.categories.map((category) => (
@@ -313,7 +313,7 @@ export default function Example() {
                   </TabPanel>
                 ))}
               </TabPanels>
-            </TabGroup>
+            </TabGroup> */}
 
             <div className="space-y-6 border-t border-gray-200 px-4 py-6">
                {navigation.pages.map((page) => (
@@ -369,16 +369,16 @@ export default function Example() {
                   <Bars3Icon aria-hidden="true" className="size-6" />
                 </button>
 
-                <a href="#" className="ml-2 p-2 text-gray-400 hover:text-gray-500">
+                {/*<a href="#" className="ml-2 p-2 text-gray-400 hover:text-gray-500">
                   <span className="sr-only">Search</span>
                   <MagnifyingGlassIcon aria-hidden="true" className="size-6" />
-                </a>
+                </a>*/}
               </div>
 
               {/* Flyout menus */}
               <PopoverGroup className="hidden lg:block lg:flex-1 lg:self-stretch">
                 <div className="flex h-full space-x-8">
-                  {navigation.categories.map((category) => (
+                  {/*{navigation.categories.map((category) => (
                     <Popover key={category.id} className="flex">
                       <div className="relative flex">
                         <PopoverButton className="group relative z-10 flex items-center justify-center text-sm font-medium text-gray-700 transition-colors duration-200 ease-out hover:text-gray-800 data-open:text-indigo-600">
@@ -394,7 +394,7 @@ export default function Example() {
                         transition
                         className="absolute inset-x-0 top-full transition data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-150 data-leave:ease-in"
                       >
-                        {/* Presentational element used to render the bottom shadow, if we put the shadow on the actual panel it pokes out the top, so we use this shorter element to hide the top of the shadow */}
+                         Presentational element used to render the bottom shadow, if we put the shadow on the actual panel it pokes out the top, so we use this shorter element to hide the top of the shadow 
                         <div aria-hidden="true" className="absolute inset-0 top-1/2 bg-white shadow-sm" />
 
                         <div className="relative bg-white">
@@ -465,7 +465,7 @@ export default function Example() {
                         </div>
                       </PopoverPanel>
                     </Popover>
-                  ))}
+                  ))} */}
 
                   {navigation.pages.map((page) => 
   page.dropdown ? (
