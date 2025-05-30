@@ -1151,7 +1151,7 @@ useEffect(() => {
                 <div className="text-sm text-gray-500">
                   Required fields: {requiredAddressFields.map(field => 
                     !formData[field] || formData[field].trim() === '' ? (
-                      <span key={field} className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs mr-1 mb-1">
+                      <span key={field} className="inline-block text-[#fc5800ff] bg-[#fc5800ff]/10 px-2 py-1 rounded text-xs mr-1 mb-1">
                         {field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </span>
                     ) : null
