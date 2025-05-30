@@ -161,6 +161,19 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
 
 
 
+// Required address fields
+const requiredAddressFields = [
+  'email_address',
+  'first_name',
+  'last_name',
+  'company_name',
+  'firstLine_address',
+  'city',
+  'country',
+  'post_code',
+  'phone_number'
+];
+
 export default function CheckOut() {
   const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
 
@@ -200,19 +213,6 @@ const [formData, setFormData] = useState({
 
   // address validation logic
   const [isAddressComplete, setIsAddressComplete] = useState(false);
-
-  // Required address fields
-  const requiredAddressFields = [
-    'email_address',
-    'first_name',
-    'last_name',
-    'company_name',
-    'firstLine_address',
-    'city',
-    'country',
-    'post_code',
-    'phone_number'
-  ];
 
   // Check if address is complete
   useEffect(() => {
@@ -948,7 +948,7 @@ useEffect(() => {
                       autoComplete="country-name"
                       className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     >
-                      <option>United Kingdom</option> <span className="text-black">*</span>
+                      <option>United Kingdom</option>
                     </select>
                     <ChevronDownIcon
                       aria-hidden="true"
