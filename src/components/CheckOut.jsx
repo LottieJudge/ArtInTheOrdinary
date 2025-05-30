@@ -159,8 +159,40 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
   );
 }
 
+
+
+// Required address fields
+const requiredAddressFields = [
+  'email_address',
+  'first_name',
+  'last_name',
+  'company_name',
+  'firstLine_address',
+  'city',
+  'country',
+  'post_code',
+  'phone_number'
+];
+
 export default function CheckOut() {
   const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
+
+const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email_address: '',
+    company_name: '',
+    firstLine_address: '',
+    house_apartment_number: '',
+    city: '',
+    country: 'United Kingdom',
+    state_province: '',
+    post_code: '',
+    phone_number: '',
+    item_ordered: '',
+    size: '',
+  })
+
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -178,6 +210,30 @@ export default function CheckOut() {
   // Loading
   const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(false);
   const [isDeliveryDataReady, setIsDeliveryDataReady] = useState(false);
+
+  // address validation logic
+  const [isAddressComplete, setIsAddressComplete] = useState(false);
+
+  // Check if address is complete
+  useEffect(() => {
+    const isComplete = requiredAddressFields.every(field => 
+      formData[field] && formData[field].trim() !== ''
+    );
+    setIsAddressComplete(isComplete);
+    
+    // Clear delivery options if address becomes incomplete
+    if (!isComplete) {
+      setSelectedDeliveryMethod(null);
+      setSelectedDeliverySubOption(null);
+      setShowDeliverySubOptions(false);
+      setShowCollectionSearch(false);
+      setShowCalendar(false);
+      setSelectedDate(null);
+      setPudoOptions([]);
+      setSelectedPudoOption(null);
+    }
+  }, [formData]);
+
 
   // Delivery sub-options 
   const [deliverySubOptions, setDeliverySubOptions] = useState ([
@@ -246,6 +302,7 @@ export default function CheckOut() {
   };
 
   // Handlers
+  
   // Handle collection postcode change
   const handleCollectionPostcodeChange = (event) => {
     setCollectionPostcode(event.target.value);
@@ -533,21 +590,7 @@ const fetchStandardDeliveryOptions = async () => {
   ]
 
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email_address: '',
-    company_name: '',
-    firstLine_address: '',
-    house_apartment_number: '',
-    city: '',
-    country: 'United Kingdom',
-    state_province: '',
-    post_code: '',
-    phone_number: '',
-    item_ordered: '',
-    size: '',
-  })
+  
 
 useEffect(() => {
   // When postcode changes, fetch delivery options for both standard and nominated
@@ -640,7 +683,7 @@ useEffect(() => {
     });
     
     console.log('Enriched cart items with descriptions:', enrichedCartItems);
-    // END OF ENRICHMENT CODE
+   
 
       const itemCount = cartItems.length;
       const firstItemName = cartItems[0]?.name || 'Item';
@@ -773,7 +816,7 @@ useEffect(() => {
               <h2 className="text-lg font-medium text-gray-900">Contact information</h2>
               <div className="mt-4">
                 <label htmlFor="email_address" className="block text-sm/6 font-medium text-gray-700">
-                  Email address
+                  Email address <span className="text-black">*</span>
                 </label>
                 <div className="mt-2">
                   <input
@@ -794,7 +837,7 @@ useEffect(() => {
               <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
                   <label htmlFor="first_name" className="block text-sm/6 font-medium text-gray-700">
-                    First name
+                    First name <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -811,7 +854,7 @@ useEffect(() => {
 
                 <div>
                   <label htmlFor="last_name" className="block text-sm/6 font-medium text-gray-700">
-                    Last name
+                    Last name <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -828,7 +871,7 @@ useEffect(() => {
 
                 <div className="sm:col-span-2">
                   <label htmlFor="company_name" className="block text-sm/6 font-medium text-gray-700">
-                    Company
+                    Company <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -844,7 +887,7 @@ useEffect(() => {
 
                 <div className="sm:col-span-2">
                   <label htmlFor="firstLine_address" className="block text-sm/6 font-medium text-gray-700">
-                    Address
+                    Address <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -861,7 +904,7 @@ useEffect(() => {
 
                 <div className="sm:col-span-2">
                   <label htmlFor="house_apartment_number" className="block text-sm/6 font-medium text-gray-700">
-                    Apartment, suite, etc.
+                    Apartment, suite
                   </label>
                   <div className="mt-2">
                     <input
@@ -877,7 +920,7 @@ useEffect(() => {
 
                 <div>
                   <label htmlFor="city" className="block text-sm/6 font-medium text-gray-700">
-                    City
+                    City <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -894,7 +937,7 @@ useEffect(() => {
 
                 <div>
                   <label htmlFor="country" className="block text-sm/6 font-medium text-gray-700">
-                    Country
+                    Country <span className="text-black">*</span>
                   </label>
                   <div className="mt-2 grid grid-cols-1">
                     <select
@@ -933,7 +976,7 @@ useEffect(() => {
 
                 <div>
                   <label htmlFor="post_code" className="block text-sm/6 font-medium text-gray-700">
-                    Postal code
+                    Postal code <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -950,7 +993,7 @@ useEffect(() => {
 
                 <div className="sm:col-span-2">
                   <label htmlFor="phone_number" className="block text-sm/6 font-medium text-gray-700">
-                    Phone
+                    Phone <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -967,6 +1010,7 @@ useEffect(() => {
               </div>
             </div>
 
+                    {isAddressComplete ? (
             <div className="mt-10 border-t border-gray-200 pt-10">
               <fieldset>
                 <legend className="text-lg font-medium text-gray-900">Delivery method</legend>
@@ -1012,7 +1056,7 @@ useEffect(() => {
                       value={selectedDeliverySubOption}
                       onChange={handleSubOptionChange}
                       className="space-y-4"
-                      >
+                    >
                       {deliverySubOptions.map((subOption) => (
                         <Radio
                           key={subOption.id}
@@ -1021,7 +1065,7 @@ useEffect(() => {
                           aria-description={`${subOption.turnaround} for ${subOption.price}`}
                           className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
                         >
-                        <span className="flex flex-1">
+                          <span className="flex flex-1">
                             <span className="flex flex-col">
                               <span className="block text-sm font-medium text-gray-900">{subOption.title}</span>
                               <span className="mt-1 flex items-center text-sm text-gray-500">
@@ -1039,8 +1083,9 @@ useEffect(() => {
                             className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
                           />
                         </Radio>
-                         ))}
+                      ))}
                     </RadioGroup>
+                    
                     {/* Calendar for Nominated Day */}
                     {showCalendar && (
                       <div className="mt-6 pl-4 border-l-2 border-gray-100">
@@ -1063,23 +1108,20 @@ useEffect(() => {
                                 transition-colors duration-200
                               `}
                             >
-                            {/* Show booking code indicator for real API data */}
-                            {day.bookingCode && (
-                              <div className="absolute top-1 right-1 w-2 h-2 bg-[#22ee88ff] rounded-full"></div>
-                            )}
-
-                            {/* Diagonal line for unavailable dates */}
-                            {!day.isAvailable && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
-                              </div>
-                            )}
-                            <span className="font-medium relative z-10">{day.dayName}</span>
-                            <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
-                            <span className="text-xs relative z-10">{day.monthName}</span>
-                          </button>
+                              {day.bookingCode && (
+                                <div className="absolute top-1 right-1 w-2 h-2 bg-[#22ee88ff] rounded-full"></div>
+                              )}
+                              {!day.isAvailable && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
+                                </div>
+                              )}
+                              <span className="font-medium relative z-10">{day.dayName}</span>
+                              <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
+                              <span className="text-xs relative z-10">{day.monthName}</span>
+                            </button>
                           ))}
-                         </div>
+                        </div>
                         {selectedDate && (
                           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
                             <p className="text-sm text-green-800">
@@ -1098,6 +1140,26 @@ useEffect(() => {
                 )}
               </fieldset>
             </div>
+          ) : (
+            // Show placeholder when address is incomplete
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Delivery Options</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Please complete your address information to see available delivery options.
+                </p>
+                <div className="text-sm text-gray-500">
+                  Required fields: {requiredAddressFields.map(field => 
+                    !formData[field] || formData[field].trim() === '' ? (
+                      <span key={field} className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-xs mr-1 mb-1">
+                        {field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 {/* local collection point options */}
             {showCollectionSearch && (
               <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
