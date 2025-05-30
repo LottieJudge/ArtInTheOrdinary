@@ -223,21 +223,25 @@ const [formData, setFormData] = useState({
     
     // Clear delivery options if address becomes incomplete
     if (!isComplete) {
-      setSelectedDeliveryMethod(null);
-      setSelectedDeliverySubOption(null);
-      setShowDeliverySubOptions(false);
-      setShowCollectionSearch(false);
-      setShowCalendar(false);
-      setSelectedDate(null);
-      setPudoOptions([]);
-      setSelectedPudoOption(null);
-    }
-  }, [formData]);
+    setSelectedDeliveryMethod(null);
+    setSelectedDeliverySubOption(null);
+    setShowDeliverySubOptions(false);
+    setShowCollectionSearch(false);
+    setShowCalendar(false);
+    setSelectedDate(null);
+    setPudoOptions([]);
+    setSelectedPudoOption(null);
+  } else {
+    fetchStandardDeliveryOptions();
+    fetchNextDayOptions();
+  }
+}, [formData]);
 
 
   // Delivery sub-options 
   const [deliverySubOptions, setDeliverySubOptions] = useState ([
     { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
+    { id: 'next', title: 'Next day delivery', turnaround: "Delivered tomorrow", price: '£6.95' },
     { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
     // { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' }, hiding as not required for MVP
   ]);
@@ -361,15 +365,97 @@ const [formData, setFormData] = useState({
 
   // Handle delivery options 
   const handleSubOptionChange = (subOption) => {
-    setSelectedDeliverySubOption(subOption);
-    
-    if (subOption.id === 'nominated') {
+  setSelectedDeliverySubOption(subOption);
+  
+  if (subOption.id === 'nominated') {
     setShowCalendar(true);
     // Fetch real nominated day options from your API
     fetchNominatedDays();
+  } else if (subOption.id === 'standard') {
+    fetchStandardDeliveryOptions();
+    setShowCalendar(false);
+    setSelectedDate(null);
+  } else if (subOption.id === 'next') {
+    fetchNextDayOptions(); // Add this line
+    setShowCalendar(false);
+    setSelectedDate(null);
   } else {
     setShowCalendar(false);
     setSelectedDate(null);
+  }
+};
+
+  // Handle next day
+
+  const fetchNextDayOptions = async () => {
+  console.log('🔍 fetchNextDayOptions called!');
+  
+  try {
+    const customerPostcode = formData.post_code || 'E20 2ST';
+    
+    console.log('Fetching next day delivery options for postcode:', customerPostcode);
+    
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&type=next`);
+    const data = await response.json();
+    
+    console.log('Next day delivery API response:', data);
+
+    if (!data.nextDayOptions || data.nextDayOptions.length === 0) {
+      console.log('No next day delivery options available');
+      
+      // Update to show not available
+      setDeliverySubOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.id === 'next') {
+            return {
+              ...option,
+              turnaround: 'Not available for your location',
+              price: 'N/A',
+              disabled: false
+            };
+          }
+          return option;
+        })
+      );
+      return;
+    }
+    
+    // Find the cheapest next day option (since all next day options deliver on the same day)
+    const cheapestOption = data.nextDayOptions.reduce((prev, current) => {
+      const prevCost = prev.shippingCost || 999;
+      const currentCost = current.shippingCost || 999;
+      return currentCost < prevCost ? current : prev;
+    });
+
+    console.log('Cheapest next day option:', cheapestOption);
+
+    const deliveryDate = cheapestOption.delivery?.to;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Update the delivery sub-options
+    setDeliverySubOptions(prevOptions => 
+      prevOptions.map(option => {
+        if (option.id === 'next') {
+          return {
+            ...option,
+            bookingCode: cheapestOption.carrierServiceCode,
+            fullBookingCode: cheapestOption.bookingCode,
+            price: `£${cheapestOption.shippingCost?.toFixed(2) || '6.95'}`,
+            turnaround: deliveryDate 
+              ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
+              : 'Next working day',
+            carrierService: cheapestOption.fullName,
+            deliveryWindow: cheapestOption.delivery,
+            disabled: false
+          };
+        }
+        return option;
+      })
+    );
+    
+  } catch (error) {
+    console.error('Error fetching next day delivery options:', error);
   }
 };
 
@@ -523,6 +609,23 @@ const getNext14Days = (deliveryWindows = []) => {
   }, []);
 
   // Fetch Delivery Options
+
+  // Format delivery date for display
+function formatDeliveryDate(dateString) {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    });
+  } catch (error) {
+    console.error('Error formatting delivery date:', error);
+    return null;
+  }
+}
+
+
 const fetchStandardDeliveryOptions = async () => {
   try {
     const customerPostcode = formData.post_code || 'E20 2ST';
@@ -533,35 +636,164 @@ const fetchStandardDeliveryOptions = async () => {
     const data = await response.json();
     
     console.log('Standard delivery API response:', data);
+
+     if (!data.standardOptions || data.standardOptions.length === 0) {
+      console.log('No standard delivery options available');
+      return;
+    }
     
-    if (data.standardOptions && data.standardOptions.length > 0) {
-      // Use the cheapest option by default
-      const cheapestOption = data.standardOptions.reduce((prev, current) => 
-        (prev.shippingCost < current.shippingCost) ? prev : current
-      );
+    // Find the fastest delivery option (earliest delivery date)
+      const fastestOption = data.standardOptions.reduce((prev, current) => {
+        const prevDate = new Date(prev.delivery?.to || '2099-12-31');
+        const currentDate = new Date(current.delivery?.to || '2099-12-31');
+        return currentDate < prevDate ? current : prev;
+      });
+      
+      // Find the cheapest delivery option (lowest cost)
+      const cheapestOption = data.standardOptions.reduce((prev, current) => {
+        const prevCost = prev.shippingCost || 999;
+        const currentCost = current.shippingCost || 999;
+        return currentCost < prevCost ? current : prev;
+      });
+
+      console.log('Delivery options analysis:', {
+        fastest: {
+          service: fastestOption.fullName,
+          deliveryDate: fastestOption.delivery?.to,
+          cost: fastestOption.shippingCost
+        },
+        cheapest: {
+          service: cheapestOption.fullName,
+          deliveryDate: cheapestOption.delivery?.to,
+          cost: cheapestOption.shippingCost
+        }
+      });
+
+      // CONFIGURATION: Choose which option to use (easily switchable)
+      // Option 1: Use fastest option
+      const selectedOption = fastestOption;
+      const optionType = 'fastest';
+      
+      // Option 2: Use cheapest option (commented out - easy to switch)
+      // const selectedOption = cheapestOption;
+      // const optionType = 'cheapest';
+      
+      // Option 3: Let user choose (future enhancement - see below)
+      // This would require updating the deliverySubOptions to include both
+
+      const deliveryDate = selectedOption.delivery?.to;
       
       // Update the delivery sub-options with carrier service code (NOT full booking code)
-      setDeliverySubOptions(prevOptions => 
+      console.log('🔍 BEFORE UPDATE - About to update delivery sub-option:', {
+      deliveryDate,
+      formattedDate: formatDeliveryDate(deliveryDate),
+      price: selectedOption.shippingCost?.toFixed(2) 
+    });      
+
+    
+       setDeliverySubOptions(prevOptions => 
         prevOptions.map(option => {
           if (option.id === 'standard') {
             return {
               ...option,
-              bookingCode: cheapestOption.carrierServiceCode, // Use carrierServiceCode for standard
-              fullBookingCode: cheapestOption.bookingCode, // Store full for reference
-              price: `£${cheapestOption.shippingCost?.toFixed(2) || '5.95'}`,
-              carrierService: cheapestOption.fullName
+              bookingCode: selectedOption.carrierServiceCode,
+              fullBookingCode: selectedOption.bookingCode,
+              price: `£${selectedOption.shippingCost?.toFixed(2) || '5.95'}`,
+              turnaround: deliveryDate 
+                ? `Delivery by ${formatDeliveryDate(deliveryDate)} (${optionType})`
+                : '3 - 5 working days',
+              carrierService: selectedOption.fullName,
+              deliveryWindow: selectedOption.delivery,
+              // Store both options for future use
+              _fastestOption: fastestOption,
+              _cheapestOption: cheapestOption
             };
           }
           return option;
         })
       );
       
-      console.log('Updated standard delivery option with carrier service code:', cheapestOption.carrierServiceCode);
-    }
+      console.log(`Updated standard delivery with ${optionType} option:`, {
+      service: selectedOption.fullName,
+      deliveryDate: selectedOption.delivery?.to,
+      formatted: formatDeliveryDate(selectedOption.delivery?.to),
+      cost: selectedOption.shippingCost
+    });
   } catch (error) {
     console.error('Error fetching standard delivery options:', error);
   }
 };
+
+// 🎯 FUTURE ENHANCEMENT: Function to switch between fastest/cheapest
+const switchDeliveryOption = (optionType) => {
+  setDeliverySubOptions(prevOptions => 
+    prevOptions.map(option => {
+      if (option.id === 'standard' && option._fastestOption && option._cheapestOption) {
+        const selectedOption = optionType === 'fastest' ? option._fastestOption : option._cheapestOption;
+        const deliveryDate = selectedOption.delivery?.to;
+        
+        return {
+          ...option,
+          bookingCode: selectedOption.carrierServiceCode,
+          fullBookingCode: selectedOption.bookingCode,
+          price: `£${selectedOption.shippingCost?.toFixed(2) || '5.95'}`,
+          turnaround: deliveryDate 
+            ? `Delivery by ${formatDeliveryDate(deliveryDate)} (${optionType})`
+            : '3 - 5 working days',
+          carrierService: selectedOption.fullName,
+          deliveryWindow: selectedOption.delivery
+        };
+      }
+      return option;
+    })
+  );
+};
+
+// 🎯 FUTURE ENHANCEMENT: Create multiple standard options for user choice
+// Uncomment this section if you want to show both fastest and cheapest as separate options
+/*
+const createMultipleStandardOptions = (fastestOption, cheapestOption) => {
+  const standardOptions = [];
+  
+  // Add fastest option
+  if (fastestOption) {
+    const deliveryDate = fastestOption.delivery?.to;
+    standardOptions.push({
+      id: 'standard-fastest',
+      title: 'Standard delivery (Fastest)',
+      turnaround: deliveryDate 
+        ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
+        : '3 - 5 working days',
+      price: `£${fastestOption.shippingCost?.toFixed(2) || '5.95'}`,
+      bookingCode: fastestOption.carrierServiceCode,
+      fullBookingCode: fastestOption.bookingCode,
+      carrierService: fastestOption.fullName,
+      deliveryWindow: fastestOption.delivery,
+      optionType: 'fastest'
+    });
+  }
+  
+  // Add cheapest option (if different from fastest)
+  if (cheapestOption && cheapestOption.bookingCode !== fastestOption?.bookingCode) {
+    const deliveryDate = cheapestOption.delivery?.to;
+    standardOptions.push({
+      id: 'standard-cheapest',
+      title: 'Standard delivery (Cheapest)',
+      turnaround: deliveryDate 
+        ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
+        : '3 - 5 working days',
+      price: `£${cheapestOption.shippingCost?.toFixed(2) || '5.95'}`,
+      bookingCode: cheapestOption.carrierServiceCode,
+      fullBookingCode: cheapestOption.bookingCode,
+      carrierService: cheapestOption.fullName,
+      deliveryWindow: cheapestOption.delivery,
+      optionType: 'cheapest'
+    });
+  }
+  
+  return standardOptions;
+};
+*/
 
   function getDeliveryWindow({ from, to }) {
     if (!from || !to) return '';
@@ -1061,6 +1293,7 @@ useEffect(() => {
                         <Radio
                           key={subOption.id}
                           value={subOption}
+                          disabled={subOption.disabled}
                           aria-label={subOption.title}
                           aria-description={`${subOption.turnaround} for ${subOption.price}`}
                           className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
