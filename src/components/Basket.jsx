@@ -147,7 +147,7 @@ import Image from 'next/image'
             <Link href="/checkout">
               <button
                 type="button"
-                className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
+                className="w-full rounded-md border border-transparent bg-black px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-white hover:text-black hover:border-black  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden"
               >
                 Checkout
               </button>
