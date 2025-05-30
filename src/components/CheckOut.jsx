@@ -783,7 +783,7 @@ useEffect(() => {
                     value={formData.email_address}
                     onChange={handleChange}
                     autoComplete="email"
-                    className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                   />
                 </div>
               </div>
@@ -804,7 +804,7 @@ useEffect(() => {
                       value={formData.first_name}
                       onChange={handleChange}
                       autoComplete="given-name"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -821,7 +821,7 @@ useEffect(() => {
                       value={formData.last_name}
                       onChange={handleChange}
                       autoComplete="family-name"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -837,7 +837,7 @@ useEffect(() => {
                       type="text"
                       value={formData.company_name}
                       onChange={handleChange}
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -854,7 +854,7 @@ useEffect(() => {
                       value={formData.firstLine_address}
                       onChange={handleChange}
                       autoComplete="street-address"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -870,7 +870,7 @@ useEffect(() => {
                       type="text"
                       value={formData.house_apartment_number}
                       onChange={handleChange}
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -887,7 +887,7 @@ useEffect(() => {
                       value={formData.city}
                       onChange={handleChange}
                       autoComplete="address-level2"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -903,7 +903,7 @@ useEffect(() => {
                       value={formData.country}
                       onChange={handleChange}
                       autoComplete="country-name"
-                      className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     >
                       <option>United Kingdom</option>
                     </select>
@@ -926,7 +926,7 @@ useEffect(() => {
                       value={formData.state_province}
                       onChange={handleChange}
                       autoComplete="address-level1"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -943,7 +943,7 @@ useEffect(() => {
                       value={formData.post_code}
                       onChange={handleChange}
                       autoComplete="postal-code"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -960,7 +960,7 @@ useEffect(() => {
                       value={formData.phone_number}
                       onChange={handleChange}
                       autoComplete="tel"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
@@ -994,11 +994,11 @@ useEffect(() => {
                       </span>
                       <CheckCircleIcon
                         aria-hidden="true"
-                        className="size-5 text-indigo-600 group-not-data-checked:hidden"
+                        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
                       />
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-indigo-500 group-data-focus:border"
+                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
                       />
                     </Radio>
                   ))}
@@ -1032,11 +1032,11 @@ useEffect(() => {
                           </span>
                           <CheckCircleIcon
                             aria-hidden="true"
-                            className="size-5 text-indigo-600 group-not-data-checked:hidden"
+                            className="size-5 text-[#303efaff] group-not-data-checked:hidden"
                           />
                           <span
                             aria-hidden="true"
-                            className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-indigo-500 group-data-focus:border"
+                            className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
                           />
                         </Radio>
                          ))}
@@ -1057,7 +1057,7 @@ useEffect(() => {
                                 ${!day.isAvailable 
                                   ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                                   : selectedDate?.date.getTime() === day.date.getTime()
-                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                    ? 'bg-[#303efaff] text-white border-[#303efaff] hover:bg-[#303efaff]/90'
                                     : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
                                 }
                                 transition-colors duration-200
@@ -1065,7 +1065,7 @@ useEffect(() => {
                             >
                             {/* Show booking code indicator for real API data */}
                             {day.bookingCode && (
-                              <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></div>
+                              <div className="absolute top-1 right-1 w-2 h-2 bg-[#22ee88ff] rounded-full"></div>
                             )}
 
                             {/* Diagonal line for unavailable dates */}
@@ -1115,13 +1115,13 @@ useEffect(() => {
           value={collectionPostcode}
           onChange={handleCollectionPostcodeChange}
           placeholder="e.g. SW1A 1AA"
-          className="flex-1 rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm"
+          className="flex-1 rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-[#303efaff] sm:text-sm"
         />
         <button
           type="button"
           onClick={handleCollectionPostcodeSearch}
           disabled={isSearching || !collectionPostcode.trim()}
-          className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-2 focus:outline-indigo-600"
+          className="px-6 py-2 bg-[#11003aff] text-white text-sm font-medium rounded-md hover:bg-[#303efaff] focus:outline-2 focus:outline-black"
         >
         {isSearching ? 'Searching...' : 'Search'} 
         </button>
@@ -1159,7 +1159,7 @@ useEffect(() => {
             onClick={() => setSelectedPudoOption(pudo)}
             className={`p-3 border rounded-md cursor-pointer transition-colors ${
               selectedPudoOption?.storeId === pudo.storeId 
-                ? 'border-indigo-500 bg-indigo-50' 
+                ? 'border-[#303efaff] bg-[#303efaff]/10 hover:bg-[#303efaff]/20' 
                 : 'border-gray-200 bg-white hover:bg-gray-50'
             }`}
           >
