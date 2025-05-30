@@ -1174,7 +1174,8 @@ useEffect(() => {
 )}
           
             {/* Payment */}
-            <div className="mt-10 border-t border-gray-200 pt-10">
+            </div>
+        {/*   <div className="mt-10 border-t border-gray-200 pt-10">
               <h2 className="text-lg font-medium text-gray-900">Payment</h2>
 
               <fieldset className="mt-4">
@@ -1259,7 +1260,7 @@ useEffect(() => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Order summary */}
           <div className="mt-10 lg:mt-0">
