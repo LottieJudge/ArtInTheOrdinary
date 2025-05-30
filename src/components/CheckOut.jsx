@@ -1326,9 +1326,9 @@ useEffect(() => {
                     disabled={isLoadingDeliveryOptions}
                     className={`w-full rounded-md border border-transparent ${
                       isLoadingDeliveryOptions 
-                        ? 'bg-indigo-400 cursor-not-allowed' 
-                        : 'bg-indigo-600 hover:bg-indigo-700'
-                    } px-4 py-3 text-base font-medium text-white shadow-xs focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden`}
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-black hover:bg-white hover:text-black hover:border-black'
+                    } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
                   >
                     {isLoadingDeliveryOptions ? 'Loading delivery options...' : 'Confirm order'}
                   </button>
