@@ -31,6 +31,24 @@ export async function GET(request) {
     const response = await fetch(`${url}?${params}`);
     const data = await response.json();
 
+    console.log('Raw Metapack PUDO response sample:');
+if (data.results && data.results.length > 0) {
+  console.log('First PUDO result structure:', {
+    keys: Object.keys(data.results[0]),
+    sampleData: data.results[0]
+  });
+  
+  // Look specifically for opening hours fields
+  const firstPudo = data.results[0];
+  console.log('Opening hours fields check:', {
+    storeTimes: firstPudo.storeTimes,
+    openingHours: firstPudo.openingHours,
+    operatingHours: firstPudo.operatingHours,
+    hours: firstPudo.hours,
+    workingHours: firstPudo.workingHours
+  });
+}
+
     if (data.results && Array.isArray(data.results)) {
       const uniqueResults = data.results.filter((pudo, index, self) => 
         index === self.findIndex(p => 
