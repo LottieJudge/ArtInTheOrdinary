@@ -90,7 +90,7 @@ export const OrderConfirmationEmail = ({
           </Container>
 
           <Container style={resources}>
-            <Text style={resourcesHeading}>Explore how Metapack can elevate your end-to-end customer delivery experience:</Text>
+            <Text style={resourcesHeading}>Explore how <strong>Metapack</strong>Metapack can elevate your end-to-end customer delivery experience:'</Text>
             <ul style={resourcesList}>
               <li>
                 <Link style={link} href="https://auctane.share.mindtickle.com/room/9d3452c8-c96f-48c9-9f2b-509af52b5bb8">
@@ -204,6 +204,9 @@ const resourcesList = {
   color: '#000',
 };
 
+const link = {
+  color: 'blue',  
+};
 
 const footer = {
   textAlign: 'center',
