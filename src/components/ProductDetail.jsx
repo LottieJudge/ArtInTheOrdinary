@@ -25,6 +25,10 @@ export default function ProductDetail({ product }) {
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
+    if (!selectedSize.inStock) {
+      alert('Please select an available size.')
+      return;
+    }
     console.log('Adding to cart:', {
       product: product.name,
       color: selectedColor.name,
@@ -134,7 +138,9 @@ export default function ProductDetail({ product }) {
                             color.selectedColor,
                             'relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-hidden data-checked:ring-2 data-focus:data-checked:ring-3 data-focus:data-checked:ring-offset-1',
                           )}
+
                         >
+                          
                           <span
                             aria-hidden="true"
                             className={classNames(color.bgColor, 'size-8 rounded-full border border-black/10')}
@@ -162,28 +168,68 @@ export default function ProductDetail({ product }) {
                     >
                       {product.sizes.map((size) => (
                         <Radio
-                          key={size.name}
-                          value={size}
-                          disabled={!size.inStock}
-                          className={classNames(
-                            size.inStock ? 'cursor-pointer focus:outline-hidden' : 'cursor-not-allowed opacity-25',
-                            'flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 data-checked:border-transparent data-checked:bg-black data-checked:text-white data-checked:hover:bg-white data-checked:hover:text-black data-checked:hover:border-black  data-focus:ring-2 data-focus:ring-white/20 data-focus:ring-offset-2 sm:flex-1',
-                          )}
-                        >
-                          {size.name}
-                        </Radio>
+  key={size.name}
+  value={size}
+  disabled={!size.inStock}
+  className={classNames(
+    size.inStock ? 'cursor-pointer focus:outline-hidden' : 'cursor-not-allowed opacity-25',
+    'relative flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 data-checked:border-transparent data-checked:bg-black data-checked:text-white data-checked:hover:bg-white data-checked:hover:text-black data-checked:hover:border-black data-focus:ring-2 data-focus:ring-white/20 data-focus:ring-offset-2 sm:flex-1',
+    !size.inStock && "group"
+  )}
+  title={!size.inStock ? `Size ${size.name} is currently out of stock` : undefined}
+>
+  {/* ✅ Text content */}
+  <span className="relative z-10">
+    {size.name}
+  </span>
+  
+  {/* ✅ Diagonal line across the ENTIRE button box */}
+  {!size.inStock && (
+  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div 
+        className="bg-gray-200 h-0.5"
+        style={{
+          width: '141%', // Ensures it reaches corners on all screen sizes
+          transform: 'rotate(30deg)', // Keep your exact 30-degree angle
+          transformOrigin: 'center'
+        }}
+      />
+    </div>
+  </div>
+)}
+  
+  {/* ✅ Hover tooltip */}
+  {!size.inStock && (
+    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+      Out of stock
+      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    </div>
+  )}
+</Radio>
                       ))}
                     </RadioGroup>
                   </fieldset>
                 </div>
 
                 <button
-                  type="button"
-                  onClick={handleAddToCart}
-                  className="mt-8 flex w-full items-center justify-center rounded-md border border-transparent bg-black px-8 py-3 text-base font-medium text-white hover:bg-white hover:text-black hover:border-black focus:ring-2 focus:ring-white/2 focus:ring-offset-2 focus:outline-hidden"
-                >
-                  Add to cart
-                </button>
+  type="button"
+  onClick={handleAddToCart}
+  // ✅ ADD THIS: Disable when out of stock
+  disabled={!selectedSize?.inStock}
+  className={classNames(
+    'mt-8 flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium focus:ring-2 focus:ring-white/2 focus:ring-offset-2 focus:outline-hidden',
+    // ✅ ADD THIS: Conditional styling
+    selectedSize?.inStock 
+      ? 'bg-black text-white hover:bg-white hover:text-black hover:border-black cursor-pointer'
+      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+  )}
+  // ✅ ADD THIS: Tooltip for button
+  title={!selectedSize?.inStock ? 'Please select an available size' : undefined}
+>
+  {/* ✅ ADD THIS: Dynamic text */}
+  {selectedSize?.inStock ? 'Add to cart' : 'Select available size'}
+</button>
               </form>
 
               {/* Product details */}
