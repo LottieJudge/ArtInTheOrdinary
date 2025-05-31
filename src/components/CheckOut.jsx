@@ -457,14 +457,22 @@ const [formData, setFormData] = useState({
       storeName: pudo.storeName,
       address: pudo.address,
       postcode: pudo.postcode,
+      // Look for price fields specifically:
+      price: pudo.price,
+      cost: pudo.cost,
+      shippingCost: pudo.shippingCost,
+      collectionCost: pudo.collectionCost,
+      fee: pudo.fee,
+      charges: pudo.charges,
       // Look for opening hours fields:
-      openingHours: pudo.openingHours,
       storeTimes: pudo.storeTimes,
-      operatingHours: pudo.operatingHours,
-      hours: pudo.hours,
-      workingHours: pudo.workingHours,
       // Show all available keys to see what fields exist:
-      allKeys: Object.keys(pudo),
+      allKeys: Object.keys(pudo).filter(key => 
+        key.toLowerCase().includes('price') || 
+        key.toLowerCase().includes('cost') || 
+        key.toLowerCase().includes('fee') ||
+        key.toLowerCase().includes('charge')
+      ),
       // Show full structure for first PUDO option only:
       ...(index === 0 ? { fullStructure: JSON.stringify(pudo, null, 2) } : {})
     });
@@ -486,6 +494,8 @@ const [formData, setFormData] = useState({
       setIsSearching(false);
     }
   };
+
+  
 
   // Handle delivery options 
   const handleSubOptionChange = (subOption) => {
@@ -1624,9 +1634,32 @@ useEffect(() => {
             : 'border-gray-200 bg-white hover:bg-gray-50'
         }`}
       >
-        <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
-        <p className="text-sm text-gray-600">{pudo.address}</p>
-        <p className="text-sm text-gray-500">{pudo.postcode}</p>
+        <div className="flex justify-between items-start">
+  <div className="flex-1">
+    <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
+    <p className="text-sm text-gray-600">{pudo.address}</p>
+    <p className="text-sm text-gray-500">{pudo.postcode}</p>
+  </div>
+  
+  {/* Price display with loading state */}
+  <div className="text-right">
+    {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.loading ? (
+      <p className="text-sm text-gray-500">Loading...</p>
+    ) : (
+      <>
+        <p className="text-sm font-medium text-gray-900">
+          {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.shippingCost 
+            ? `£${selectedPudoOption.shippingCost.toFixed(2)}`
+            : pudo.shippingCost 
+              ? `£${pudo.shippingCost.toFixed(2)}`
+              : '£3.95'
+          }
+        </p>
+        <p className="text-xs text-gray-500">Collection fee</p>
+      </>
+    )}
+  </div>
+</div>
         
         <div className="mt-2 pt-2 border-t border-gray-100">
           <p className="text-xs font-medium text-green-700">
