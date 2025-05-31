@@ -30,9 +30,21 @@ export async function GET(request) {
 
     const response = await fetch(`${url}?${params}`);
     const data = await response.json();
-    
-    console.log('Metapack API response:', JSON.stringify(data, null, 2));
-    console.log('Number of results returned:', data.results ? data.results.length : 0);
+
+    if (data.results && Array.isArray(data.results)) {
+      const uniqueResults = data.results.filter((pudo, index, self) => 
+        index === self.findIndex(p => 
+          p.storeName === pudo.storeName && 
+          p.address === pudo.address &&
+          p.postcode === pudo.postcode
+        )
+      );
+      
+      console.log('After deduplication:', uniqueResults.length);
+      console.log('Removed duplicates:', data.results.length - uniqueResults.length);
+      
+      data.results = uniqueResults;
+    }
     
     return Response.json(data);
   } catch (error) {

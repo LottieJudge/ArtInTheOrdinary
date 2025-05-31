@@ -1,19 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef, useContext } from 'react'
-import { ChevronDownIcon } from '@heroicons/react/16/solid'
-import { Radio, RadioGroup } from '@headlessui/react'
-import { CheckCircleIcon, TrashIcon } from '@heroicons/react/20/solid'
-import { useRouter } from 'next/navigation'
-import maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import { createContext } from 'react'
+import { useEffect, useState, useContext, createContext } from 'react'
 
 const CartContext = createContext()
 
-
-const generateItemKey = (productId, color, size) => {
-  return `${productId}-${color.name}-${size.name}`;
+const generateItemKey = (productSlug, color, size) => {
+  return `${productSlug}-${color.name}-${size.name}`;
 };
 
 export function CartProvider({ children }) {
@@ -31,57 +23,77 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems))
-    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0)
-    const vat = subtotal * 0.2 // Example VAT calculation
+    
+    // Fix price calculation - convert string prices to numbers
+    const subtotal = cartItems.reduce((acc, item) => {
+      const price = typeof item.price === 'string' 
+        ? parseFloat(item.price.replace('£', '')) 
+        : item.price;
+      return acc + (price * item.quantity);
+    }, 0)
+    
+    const vat = subtotal * 0.2 // VAT calculation
     const total = subtotal + vat
     setCartSubtotal(subtotal)
     setCartVAT(vat)
     setCartTotal(total)
   }, [cartItems])
 
-  // Update addToCart to include the composite key
+  // Fixed addToCart function
   const addToCart = (product, color, size, quantity = 1) => {
     console.log('CartContext addToCart called:', {
       product: product.name,
+      productSlug: product.slug,
       color: color.name,
-      size: size.name
+      size: size.name,
+      quantity
     });
+
     setCartItems(prevItems => {
-      const itemKey = generateItemKey(product.id, color, size);
+      const itemKey = generateItemKey(product.slug, color, size); // Use slug instead of id
       
-      // Check if item already exists with same product/color/size
+      console.log('Generated item key:', itemKey);
+      console.log('Existing items:', prevItems.map(item => item.cartItemKey));
+      
+      // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
         item => item.cartItemKey === itemKey
       );
       
       if (existingItemIndex >= 0) {
+        console.log('Updating existing item at index:', existingItemIndex);
         // Update existing item quantity
         const updatedItems = [...prevItems];
         updatedItems[existingItemIndex].quantity += quantity;
         return updatedItems;
       } else {
-        // Add new item with composite key
-        return [...prevItems, {
-          id: product.id,
-          cartItemKey: itemKey, // Add the composite key
+        console.log('Adding new item to cart');
+        // Add new item
+        const newItem = {
+          cartItemKey: itemKey,
           name: product.name,
-          price: product.price,
+          price: product.price, // Keep as string, we'll convert when calculating
           imageSrc: product.images.find(img => img.primary)?.imageSrc,
           imageAlt: product.images.find(img => img.primary)?.imageAlt,
           color: color,
           size: size,
           quantity: quantity
-        }];
+        };
+        
+        console.log('New item created:', newItem);
+        return [...prevItems, newItem];
       }
     });
   };
 
   const removeFromCart = (index) => {
+    console.log('Removing item at index:', index);
     setCartItems(prevItems => prevItems.filter((_, i) => i !== index))
   }
 
   const updateQuantity = (index, newQuantity) => {
-    if (newQuantity < 1) return; // Don't allow quantities less than 1
+    console.log('Updating quantity at index:', index, 'to:', newQuantity);
+    if (newQuantity < 1) return;
     setCartItems(prevItems => {
       const updatedItems = [...prevItems];
       updatedItems[index].quantity = newQuantity;
@@ -94,13 +106,17 @@ export function CartProvider({ children }) {
   }
 
   const formatPrice = (price) => {
+    const numericPrice = typeof price === 'string' 
+      ? parseFloat(price.replace('£', '')) 
+      : price;
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'GBP'
-    }).format(price)
+    }).format(numericPrice)
   }
 
   const clearCart = () => {
+    console.log('Clearing cart');
     setCartItems([])
   }
 

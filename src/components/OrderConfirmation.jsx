@@ -1,11 +1,19 @@
 "use client"
-import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
 export default function OrderConfirmation() {
-  const searchParams = useSearchParams();
-  const orderData = searchParams.get('order')
-  const order = orderData ? JSON.parse(decodeURIComponent(orderData)) : null;
+  const [order, setOrder] = useState(null);
+
+  useEffect(() => {
+    // Get order data from sessionStorage
+    const orderData = sessionStorage.getItem('orderData');
+    if (orderData) {
+      setOrder(JSON.parse(orderData));
+      // Clean up - remove from sessionStorage after use
+      sessionStorage.removeItem('orderData');
+    }
+  }, []);
 
   if (!order) {
     return <div>No order information found</div>;

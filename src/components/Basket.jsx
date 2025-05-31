@@ -9,15 +9,18 @@ import Image from 'next/image'
 
 
 
-export default function Basket() {
+  export default function Basket() {
     const { cartItems = [], removeFromCart, updateQuantity } = useCart() || {};
+    
+    // Fix subtotal calculation
     const subtotal = cartItems?.reduce((total, item) => {
-        const price = parseFloat(item?.price?.replace('£', '') || '0');
+        const price = typeof item.price === 'string' 
+            ? parseFloat(item.price.replace('£', '')) 
+            : item.price;
         return total + (price * (item?.quantity || 1));
     }, 0) || 0;
 
     const shipping = 5.95;
-    // const tax = subtotal * 0.08;
     const total = subtotal + shipping;
 
   return (
@@ -144,7 +147,7 @@ export default function Basket() {
             <Link href="/checkout">
               <button
                 type="button"
-                className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden"
+                className="w-full rounded-md border border-transparent bg-black px-4 py-3 text-base font-medium text-white shadow-xs hover:bg-white hover:text-black hover:border-black  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden"
               >
                 Checkout
               </button>

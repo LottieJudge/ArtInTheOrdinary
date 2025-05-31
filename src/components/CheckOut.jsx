@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useCart } from '../context/CartContext';
+import { products } from '@/data/products'
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -16,19 +17,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-
-const products = [
-  {
-    id: 1,
-    title: 'Basic Tee',
-    href: '#',
-    price: '£32.00',
-    color: 'Black',
-    size: 'Large',
-    imageSrc: 'https://tailwindcss.com/plus-assets/img/ecommerce-images/checkout-page-02-product-01.jpg',
-    imageAlt: "Front of men's Basic Tee in black.",
-  },
-]
 
 //Delivery options/sub-options, collection options
 function getDeliveryGroupLabel(groupCode) {
@@ -171,8 +159,40 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
   );
 }
 
+
+
+// Required address fields
+const requiredAddressFields = [
+  'email_address',
+  'first_name',
+  'last_name',
+  'company_name',
+  'firstLine_address',
+  'city',
+  'country',
+  'post_code',
+  'phone_number'
+];
+
 export default function CheckOut() {
   const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
+
+const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email_address: '',
+    company_name: '',
+    firstLine_address: '',
+    house_apartment_number: '',
+    city: '',
+    country: 'United Kingdom',
+    state_province: '',
+    post_code: '',
+    phone_number: '',
+    item_ordered: '',
+    size: '',
+  })
+
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -190,6 +210,30 @@ export default function CheckOut() {
   // Loading
   const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(false);
   const [isDeliveryDataReady, setIsDeliveryDataReady] = useState(false);
+
+  // address validation logic
+  const [isAddressComplete, setIsAddressComplete] = useState(false);
+
+  // Check if address is complete
+  useEffect(() => {
+    const isComplete = requiredAddressFields.every(field => 
+      formData[field] && formData[field].trim() !== ''
+    );
+    setIsAddressComplete(isComplete);
+    
+    // Clear delivery options if address becomes incomplete
+    if (!isComplete) {
+      setSelectedDeliveryMethod(null);
+      setSelectedDeliverySubOption(null);
+      setShowDeliverySubOptions(false);
+      setShowCollectionSearch(false);
+      setShowCalendar(false);
+      setSelectedDate(null);
+      setPudoOptions([]);
+      setSelectedPudoOption(null);
+    }
+  }, [formData]);
+
 
   // Delivery sub-options 
   const [deliverySubOptions, setDeliverySubOptions] = useState ([
@@ -258,6 +302,7 @@ export default function CheckOut() {
   };
 
   // Handlers
+  
   // Handle collection postcode change
   const handleCollectionPostcodeChange = (event) => {
     setCollectionPostcode(event.target.value);
@@ -545,21 +590,7 @@ const fetchStandardDeliveryOptions = async () => {
   ]
 
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    email_address: '',
-    company_name: '',
-    firstLine_address: '',
-    house_apartment_number: '',
-    city: '',
-    country: 'United Kingdom',
-    state_province: '',
-    post_code: '',
-    phone_number: '',
-    item_ordered: '',
-    size: '',
-  })
+  
 
 useEffect(() => {
   // When postcode changes, fetch delivery options for both standard and nominated
@@ -629,18 +660,36 @@ useEffect(() => {
     }
 
      console.log('Final booking code to send:', bookingCodeToSend);
-      const itemCount = cartItems.length;
-      const itemSummary = itemCount > 1 
-        ? `${itemCount} items including ${products[0].title}`
-        : products[0].title;
+
+     // ADD THIS ENRICHMENT CODE HERE - RIGHT AFTER booking code logic
+    const enrichedCartItems = cartItems.map(item => {
+      // Find the product data by matching name
+      const productKey = Object.keys(products).find(key => 
+        products[key].name === item.name
+      );
       
-    // items array for the API
-    const itemsDetails = products.map((product, index) => ({
-      itemRef: `item-${index + 1}`,
-      description: `${product.title} (${product.color}, ${product.size})`,
-      quantity: 1, 
-      value: parseFloat(product.price.replace(/[^0-9.-]+/g, ''))
-    }));
+      const product = productKey ? products[productKey] : null;
+      
+      // Extract plain text description
+      const getPlainDescription = (htmlDesc) => {
+        if (!htmlDesc) return item.name;
+        return htmlDesc.replace(/<[^>]*>/g, '').trim();
+      };
+      
+      return {
+        ...item,
+        description: product ? getPlainDescription(product.description) : item.name,
+      };
+    });
+    
+    console.log('Enriched cart items with descriptions:', enrichedCartItems);
+   
+
+      const itemCount = cartItems.length;
+      const firstItemName = cartItems[0]?.name || 'Item';
+      const itemSummary = itemCount > 1 
+        ? `${itemCount} items including ${firstItemName}`
+        : firstItemName;
     
     const { data: orderData, error: orderError } = await supabase
     .from('CustomerInfo')
@@ -670,7 +719,7 @@ useEffect(() => {
       body: JSON.stringify({
         ...formData,
         bookingCode: bookingCodeToSend,
-        cartItems,
+        cartItems: enrichedCartItems,
         selectedDate,
         selectedDeliveryMethod,
         selectedDeliverySubOption,
@@ -746,9 +795,10 @@ useEffect(() => {
       customerInfo: formData
     };
 
-    const encodedOrderData = encodeURIComponent(JSON.stringify(orderSummary));
+     // Store in sessionStorage instead of URL
+    sessionStorage.setItem('orderData', JSON.stringify(orderSummary));
     clearCart();
-    router.push(`/confirmation?order=${encodedOrderData}`);
+    router.push('/confirmation');
       } catch (error) {
     console.error('Error:', error.message);
     alert(`Order submission failed: ${error.message}`);
@@ -766,7 +816,7 @@ useEffect(() => {
               <h2 className="text-lg font-medium text-gray-900">Contact information</h2>
               <div className="mt-4">
                 <label htmlFor="email_address" className="block text-sm/6 font-medium text-gray-700">
-                  Email address
+                  Email address <span className="text-black">*</span>
                 </label>
                 <div className="mt-2">
                   <input
@@ -776,7 +826,7 @@ useEffect(() => {
                     value={formData.email_address}
                     onChange={handleChange}
                     autoComplete="email"
-                    className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                    className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                   />
                 </div>
               </div>
@@ -787,7 +837,7 @@ useEffect(() => {
               <div className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
                 <div>
                   <label htmlFor="first_name" className="block text-sm/6 font-medium text-gray-700">
-                    First name
+                    First name <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -797,14 +847,14 @@ useEffect(() => {
                       value={formData.first_name}
                       onChange={handleChange}
                       autoComplete="given-name"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="last_name" className="block text-sm/6 font-medium text-gray-700">
-                    Last name
+                    Last name <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -814,14 +864,14 @@ useEffect(() => {
                       value={formData.last_name}
                       onChange={handleChange}
                       autoComplete="family-name"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
                   <label htmlFor="company_name" className="block text-sm/6 font-medium text-gray-700">
-                    Company
+                    Company <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -830,14 +880,14 @@ useEffect(() => {
                       type="text"
                       value={formData.company_name}
                       onChange={handleChange}
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
                   <label htmlFor="firstLine_address" className="block text-sm/6 font-medium text-gray-700">
-                    Address
+                    Address <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -847,14 +897,14 @@ useEffect(() => {
                       value={formData.firstLine_address}
                       onChange={handleChange}
                       autoComplete="street-address"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
                   <label htmlFor="house_apartment_number" className="block text-sm/6 font-medium text-gray-700">
-                    Apartment, suite, etc.
+                    Apartment, suite
                   </label>
                   <div className="mt-2">
                     <input
@@ -863,14 +913,14 @@ useEffect(() => {
                       type="text"
                       value={formData.house_apartment_number}
                       onChange={handleChange}
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="city" className="block text-sm/6 font-medium text-gray-700">
-                    City
+                    City <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -880,14 +930,14 @@ useEffect(() => {
                       value={formData.city}
                       onChange={handleChange}
                       autoComplete="address-level2"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="country" className="block text-sm/6 font-medium text-gray-700">
-                    Country
+                    Country <span className="text-black">*</span>
                   </label>
                   <div className="mt-2 grid grid-cols-1">
                     <select
@@ -896,7 +946,7 @@ useEffect(() => {
                       value={formData.country}
                       onChange={handleChange}
                       autoComplete="country-name"
-                      className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     >
                       <option>United Kingdom</option>
                     </select>
@@ -919,14 +969,14 @@ useEffect(() => {
                       value={formData.state_province}
                       onChange={handleChange}
                       autoComplete="address-level1"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label htmlFor="post_code" className="block text-sm/6 font-medium text-gray-700">
-                    Postal code
+                    Postal code <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -936,14 +986,14 @@ useEffect(() => {
                       value={formData.post_code}
                       onChange={handleChange}
                       autoComplete="postal-code"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
                   <label htmlFor="phone_number" className="block text-sm/6 font-medium text-gray-700">
-                    Phone
+                    Phone <span className="text-black">*</span>
                   </label>
                   <div className="mt-2">
                     <input
@@ -953,13 +1003,14 @@ useEffect(() => {
                       value={formData.phone_number}
                       onChange={handleChange}
                       autoComplete="tel"
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
+                    {isAddressComplete ? (
             <div className="mt-10 border-t border-gray-200 pt-10">
               <fieldset>
                 <legend className="text-lg font-medium text-gray-900">Delivery method</legend>
@@ -987,11 +1038,11 @@ useEffect(() => {
                       </span>
                       <CheckCircleIcon
                         aria-hidden="true"
-                        className="size-5 text-indigo-600 group-not-data-checked:hidden"
+                        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
                       />
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-indigo-500 group-data-focus:border"
+                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
                       />
                     </Radio>
                   ))}
@@ -1005,7 +1056,7 @@ useEffect(() => {
                       value={selectedDeliverySubOption}
                       onChange={handleSubOptionChange}
                       className="space-y-4"
-                      >
+                    >
                       {deliverySubOptions.map((subOption) => (
                         <Radio
                           key={subOption.id}
@@ -1014,7 +1065,7 @@ useEffect(() => {
                           aria-description={`${subOption.turnaround} for ${subOption.price}`}
                           className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
                         >
-                        <span className="flex flex-1">
+                          <span className="flex flex-1">
                             <span className="flex flex-col">
                               <span className="block text-sm font-medium text-gray-900">{subOption.title}</span>
                               <span className="mt-1 flex items-center text-sm text-gray-500">
@@ -1025,15 +1076,16 @@ useEffect(() => {
                           </span>
                           <CheckCircleIcon
                             aria-hidden="true"
-                            className="size-5 text-indigo-600 group-not-data-checked:hidden"
+                            className="size-5 text-[#303efaff] group-not-data-checked:hidden"
                           />
                           <span
                             aria-hidden="true"
-                            className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-indigo-500 group-data-focus:border"
+                            className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
                           />
                         </Radio>
-                         ))}
+                      ))}
                     </RadioGroup>
+                    
                     {/* Calendar for Nominated Day */}
                     {showCalendar && (
                       <div className="mt-6 pl-4 border-l-2 border-gray-100">
@@ -1050,29 +1102,26 @@ useEffect(() => {
                                 ${!day.isAvailable 
                                   ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                                   : selectedDate?.date.getTime() === day.date.getTime()
-                                    ? 'bg-indigo-600 text-white border-indigo-600'
+                                    ? 'bg-[#303efaff] text-white border-[#303efaff] hover:bg-[#303efaff]/90'
                                     : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-50'
                                 }
                                 transition-colors duration-200
                               `}
                             >
-                            {/* Show booking code indicator for real API data */}
-                            {day.bookingCode && (
-                              <div className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></div>
-                            )}
-
-                            {/* Diagonal line for unavailable dates */}
-                            {!day.isAvailable && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
-                              </div>
-                            )}
-                            <span className="font-medium relative z-10">{day.dayName}</span>
-                            <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
-                            <span className="text-xs relative z-10">{day.monthName}</span>
-                          </button>
+                              {day.bookingCode && (
+                                <div className="absolute top-1 right-1 w-2 h-2 bg-[#22ee88ff] rounded-full"></div>
+                              )}
+                              {!day.isAvailable && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="w-full h-px bg-gray-300 transform rotate-45"></div>
+                                </div>
+                              )}
+                              <span className="font-medium relative z-10">{day.dayName}</span>
+                              <span className="text-xs mt-1 relative z-10">{day.dayNumber}</span>
+                              <span className="text-xs relative z-10">{day.monthName}</span>
+                            </button>
                           ))}
-                         </div>
+                        </div>
                         {selectedDate && (
                           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
                             <p className="text-sm text-green-800">
@@ -1091,6 +1140,26 @@ useEffect(() => {
                 )}
               </fieldset>
             </div>
+          ) : (
+            // Show placeholder when address is incomplete
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Delivery Options</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Please complete your address information to see available delivery options.
+                </p>
+                <div className="text-sm text-gray-500">
+                  Required fields: {requiredAddressFields.map(field => 
+                    !formData[field] || formData[field].trim() === '' ? (
+                      <span key={field} className="inline-block text-[#fc5800ff] bg-[#fc5800ff]/10 px-2 py-1 rounded text-xs mr-1 mb-1">
+                        {field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 {/* local collection point options */}
             {showCollectionSearch && (
               <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
@@ -1108,13 +1177,13 @@ useEffect(() => {
           value={collectionPostcode}
           onChange={handleCollectionPostcodeChange}
           placeholder="e.g. SW1A 1AA"
-          className="flex-1 rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm"
+          className="flex-1 rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-[#303efaff] sm:text-sm"
         />
         <button
           type="button"
           onClick={handleCollectionPostcodeSearch}
           disabled={isSearching || !collectionPostcode.trim()}
-          className="px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-2 focus:outline-indigo-600"
+          className="px-6 py-2 bg-[#11003aff] text-white text-sm font-medium rounded-md hover:bg-[#303efaff] focus:outline-2 focus:outline-black"
         >
         {isSearching ? 'Searching...' : 'Search'} 
         </button>
@@ -1152,7 +1221,7 @@ useEffect(() => {
             onClick={() => setSelectedPudoOption(pudo)}
             className={`p-3 border rounded-md cursor-pointer transition-colors ${
               selectedPudoOption?.storeId === pudo.storeId 
-                ? 'border-indigo-500 bg-indigo-50' 
+                ? 'border-[#303efaff] bg-[#303efaff]/10 hover:bg-[#303efaff]/20' 
                 : 'border-gray-200 bg-white hover:bg-gray-50'
             }`}
           >
@@ -1167,7 +1236,8 @@ useEffect(() => {
 )}
           
             {/* Payment */}
-            <div className="mt-10 border-t border-gray-200 pt-10">
+            </div>
+        {/*   <div className="mt-10 border-t border-gray-200 pt-10">
               <h2 className="text-lg font-medium text-gray-900">Payment</h2>
 
               <fieldset className="mt-4">
@@ -1252,7 +1322,7 @@ useEffect(() => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Order summary */}
           <div className="mt-10 lg:mt-0">
@@ -1319,9 +1389,9 @@ useEffect(() => {
                     disabled={isLoadingDeliveryOptions}
                     className={`w-full rounded-md border border-transparent ${
                       isLoadingDeliveryOptions 
-                        ? 'bg-indigo-400 cursor-not-allowed' 
-                        : 'bg-indigo-600 hover:bg-indigo-700'
-                    } px-4 py-3 text-base font-medium text-white shadow-xs focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-50 focus:outline-hidden`}
+                        ? 'bg-gray-400 cursor-not-allowed' 
+                        : 'bg-black hover:bg-white hover:text-black hover:border-black'
+                    } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
                   >
                     {isLoadingDeliveryOptions ? 'Loading delivery options...' : 'Confirm order'}
                   </button>
