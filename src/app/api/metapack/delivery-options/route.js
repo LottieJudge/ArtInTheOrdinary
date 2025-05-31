@@ -4,8 +4,8 @@ export async function GET(request) {
     const postcode = searchParams.get('postcode') || 'E20 2ST';
     const deliveryType = searchParams.get('type') || 'both';
     const warehousePostcode = 'EC3V 0HR';
-    
-    // Generate next 14 days for query
+
+    // 14 day delivery slots
     const deliverySlots = getNext14Days();
 
     const url = new URL('https://dmo.metapack.com/dmoptions/find');
@@ -16,24 +16,26 @@ export async function GET(request) {
     url.searchParams.set('c_pc', postcode);
     url.searchParams.set('c_cc', 'GBR');
     url.searchParams.set('radius', '1000');
-    url.searchParams.set('r_t', 'lsc');
     url.searchParams.set('optionType', 'HOME');
-    url.searchParams.set('incgrp', 'Nominated');
-    url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
 
-    //group codes based on what we want to fetch
+    // Set delivery-specific params based on type
     if (deliveryType === 'standard') {
       url.searchParams.set('incgrp', 'STANDARD');
+      url.searchParams.set('r_t', 'ggg');
     } else if (deliveryType === 'nominated') {
       url.searchParams.set('incgrp', 'NOMINATED');
+      url.searchParams.set('r_t', 'ggg');
+      url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
+    } else if (deliveryType === 'next') {
+      url.searchParams.set('incgrp', 'NEXTDAY');
+      url.searchParams.set('r_t', 'ggg');
     } else {
-      url.searchParams.set('incgrp', 'STANDARD,NOMINATED'); // Fetch both
-    }
-
-     // Logic to add delivery slots for nominated day queries
-    if (deliveryType === 'nominated' || deliveryType === 'both') {
+      // Both or All
+      url.searchParams.set('incgrp', 'STANDARD,NEXT,NOMINATED');
+      url.searchParams.set('r_t', 'ggg');
       url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
     }
+
 
 
     console.log('Metapack URL:', url.toString());
@@ -90,14 +92,20 @@ export async function GET(request) {
       option.groupCodes?.includes('NOMINATED')
     );
 
+    const nextDayOptions = deliveryOptions.filter(option => 
+      option.groupCodes?.includes('NEXTDAY')
+    );
+
+
     return Response.json({ 
       standardOptions: standardOptions,
       nominatedOptions: nominatedOptions,
+      nextDayOptions: nextDayOptions, // Add this new field
       availableDates: nominatedOptions, // Keep this for backward compatibility
       requestedDates: deliverySlots,
       postcode: postcode
-
     });
+    
   } catch (error) {
     console.error('Failed to fetch nominated days:', error);
     return Response.json(
