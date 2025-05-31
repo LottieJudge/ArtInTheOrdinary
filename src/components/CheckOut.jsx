@@ -429,7 +429,7 @@ const [formData, setFormData] = useState({
 
     console.log('Cheapest next day option:', cheapestOption);
 
-    const deliveryDate = cheapestOption.delivery?.to;
+    const deliveryDate = cheapestOption.to;
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     
@@ -637,15 +637,45 @@ const fetchStandardDeliveryOptions = async () => {
     
     console.log('Standard delivery API response:', data);
 
-     if (!data.standardOptions || data.standardOptions.length === 0) {
+    console.log('Raw API response structure:', {
+      hasStandardOptions: !!data.standardOptions,
+      standardOptionsLength: data.standardOptions?.length || 0,
+      firstOption: data.standardOptions?.[0] || 'No options'
+    });
+
+    if (!data.standardOptions || data.standardOptions.length === 0) {
       console.log('No standard delivery options available');
       return;
     }
+
+    if (data.standardOptions && data.standardOptions.length > 0) {
+      console.log('=== DELIVERY DATA EXTRACTION ===');
+      
+      data.standardOptions.forEach((option, index) => {
+        console.log(`Option ${index + 1}:`, {
+          carrierService: option.fullName,
+          deliveryDateRange: {
+            from: option.from,
+            to: option.to,
+            formatted: option.delivery?.to ? new Date(option.delivery.to).toLocaleDateString('en-GB', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }) : 'No date available'
+          },
+          cost: {
+            raw: option.shippingCost,
+            formatted: `£${option.shippingCost?.toFixed(2) || '0.00'}`
+          },
+          bookingCode: option.bookingCode
+        });
+      });
     
-    // Find the fastest delivery option (earliest delivery date)
+      // Find the fastest delivery option (earliest delivery date)
       const fastestOption = data.standardOptions.reduce((prev, current) => {
-        const prevDate = new Date(prev.delivery?.to || '2099-12-31');
-        const currentDate = new Date(current.delivery?.to || '2099-12-31');
+        const prevDate = new Date(prev.to || '2099-12-31');        // ✅ Use .to directly
+        const currentDate = new Date(current.to || '2099-12-31');  // ✅ Use .to directly
         return currentDate < prevDate ? current : prev;
       });
       
@@ -670,28 +700,30 @@ const fetchStandardDeliveryOptions = async () => {
       });
 
       // CONFIGURATION: Choose which option to use (easily switchable)
-      // Option 1: Use fastest option
       const selectedOption = fastestOption;
       const optionType = 'fastest';
-      
-      // Option 2: Use cheapest option (commented out - easy to switch)
-      // const selectedOption = cheapestOption;
-      // const optionType = 'cheapest';
-      
-      // Option 3: Let user choose (future enhancement - see below)
-      // This would require updating the deliverySubOptions to include both
 
-      const deliveryDate = selectedOption.delivery?.to;
-      
-      // Update the delivery sub-options with carrier service code (NOT full booking code)
-      console.log('🔍 BEFORE UPDATE - About to update delivery sub-option:', {
-      deliveryDate,
-      formattedDate: formatDeliveryDate(deliveryDate),
-      price: selectedOption.shippingCost?.toFixed(2) 
-    });      
+      console.log('🔍 DEBUG - selectedOption structure:', {
+        fullSelectedOption: selectedOption,
+        hasDelivery: !!selectedOption.delivery,
+        deliveryObject: selectedOption.delivery,
+        deliveryTo: selectedOption.delivery?.to,
+        deliveryFrom: selectedOption.delivery?.from,
+        // ADD THESE NEW LINES TO SEE THE FULL STRUCTURE:
+        allKeys: Object.keys(selectedOption),
+        fullStructure: JSON.stringify(selectedOption, null, 2)
+});
 
-    
-       setDeliverySubOptions(prevOptions => 
+      
+      const deliveryDate = selectedOption.to;
+      
+      console.log('BEFORE UPDATE - About to update delivery sub-option:', {
+        deliveryDate,
+        formattedDate: formatDeliveryDate(deliveryDate),
+        price: selectedOption.shippingCost?.toFixed(2) 
+      });      
+
+      setDeliverySubOptions(prevOptions => 
         prevOptions.map(option => {
           if (option.id === 'standard') {
             return {
@@ -704,7 +736,6 @@ const fetchStandardDeliveryOptions = async () => {
                 : '3 - 5 working days',
               carrierService: selectedOption.fullName,
               deliveryWindow: selectedOption.delivery,
-              // Store both options for future use
               _fastestOption: fastestOption,
               _cheapestOption: cheapestOption
             };
@@ -714,23 +745,25 @@ const fetchStandardDeliveryOptions = async () => {
       );
       
       console.log(`Updated standard delivery with ${optionType} option:`, {
-      service: selectedOption.fullName,
-      deliveryDate: selectedOption.delivery?.to,
-      formatted: formatDeliveryDate(selectedOption.delivery?.to),
-      cost: selectedOption.shippingCost
-    });
+        service: selectedOption.fullName,
+        deliveryDate: selectedOption.delivery?.to,
+        formatted: formatDeliveryDate(selectedOption.delivery?.to),
+        cost: selectedOption.shippingCost
+      });
+    } // ADD THIS CLOSING BRACE FOR THE INNER IF STATEMENT
+    
   } catch (error) {
     console.error('Error fetching standard delivery options:', error);
   }
 };
 
-// 🎯 FUTURE ENHANCEMENT: Function to switch between fastest/cheapest
+/* Function to switch between fastest/cheapest
 const switchDeliveryOption = (optionType) => {
   setDeliverySubOptions(prevOptions => 
     prevOptions.map(option => {
       if (option.id === 'standard' && option._fastestOption && option._cheapestOption) {
         const selectedOption = optionType === 'fastest' ? option._fastestOption : option._cheapestOption;
-        const deliveryDate = selectedOption.delivery?.to;
+        const deliveryDate = selectedOption.to;  // ✅ Use .to directly (not delivery.to)
         
         return {
           ...option,
@@ -741,7 +774,7 @@ const switchDeliveryOption = (optionType) => {
             ? `Delivery by ${formatDeliveryDate(deliveryDate)} (${optionType})`
             : '3 - 5 working days',
           carrierService: selectedOption.fullName,
-          deliveryWindow: selectedOption.delivery
+          deliveryWindow: { from: selectedOption.from, to: selectedOption.to }  // ✅ Create delivery object
         };
       }
       return option;

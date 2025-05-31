@@ -21,14 +21,14 @@ export async function GET(request) {
     // Set delivery-specific params based on type
     if (deliveryType === 'standard') {
       url.searchParams.set('incgrp', 'STANDARD');
-      url.searchParams.set('r_t', 'lsc');
+      url.searchParams.set('r_t', 'ggg');
     } else if (deliveryType === 'nominated') {
       url.searchParams.set('incgrp', 'NOMINATED');
       url.searchParams.set('r_t', 'ggg');
       url.searchParams.set('acceptableDeliverySlots', deliverySlots.join(','));
     } else if (deliveryType === 'next') {
-      url.searchParams.set('incgrp', 'NEXT');
-      url.searchParams.set('r_t', 'lsc');
+      url.searchParams.set('incgrp', 'NEXTDAY');
+      url.searchParams.set('r_t', 'ggg');
     } else {
       // Both or All
       url.searchParams.set('incgrp', 'STANDARD,NEXT,NOMINATED');
@@ -93,7 +93,7 @@ export async function GET(request) {
     );
 
     const nextDayOptions = deliveryOptions.filter(option => 
-      option.groupCodes?.includes('NEXT')
+      option.groupCodes?.includes('NEXTDAY')
     );
 
 
