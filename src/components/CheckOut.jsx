@@ -55,14 +55,19 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
     map.current.addControl(new maplibregl.NavigationControl());
 
      if (searchCenter) {
-      new maplibregl.Marker({ color: 'red' })
-        .setLngLat(searchCenter)
-        .setPopup(
-          new maplibregl.Popup({ offset: 25 })
-            .setHTML('<div class="p-2"><p class="text-sm font-medium">Search Location</p></div>')
-        )
-        .addTo(map.current);
-    }
+  new maplibregl.Marker({ color: 'red' })
+    .setLngLat(searchCenter)
+    .setPopup(
+      new maplibregl.Popup({ offset: 25 })
+        .setHTML(`
+          <div class="p-2">
+            <h3 class="font-medium">Search Location</h3>
+            <p class="text-sm text-gray-600">Your search area</p>
+          </div>
+        `)
+    )
+    .addTo(map.current);
+}
 
     // Debug: Log the PUDO data to see what fields are available
     console.log('PUDO Options:', pudoOptions);
@@ -76,21 +81,49 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
         const marker = new maplibregl.Marker()
           .setLngLat([pudo.long, pudo.lat])
           .setPopup(
-            new maplibregl.Popup({ offset: 25 })
+            new maplibregl.Popup({ 
+              offset: 25 
+            })
               .setHTML(`
-                <div class="p-2">
-                  <h3 class="font-medium">${pudo.storeName}</h3>
-                  <p class="text-sm text-gray-600">${pudo.address}</p>
-                  <p class="text-sm text-gray-500">${pudo.postcode}</p>
-                </div>
+                <div style="padding: 6px; font-size: 11px; line-height: 1.2; max-width: 180px;">
+    <div style="font-weight: 600; margin-bottom: 3px;">${pudo.storeName}</div>
+    <div style="color: #666; margin-bottom: 2px;">${pudo.address}</div>
+    <div style="color: #999; margin-bottom: 4px; font-size: 10px;">${pudo.postcode}</div>
+    <div style="border-top: 1px solid #eee; padding-top: 3px; margin-top: 3px;">
+      <div style="color: #059669; font-weight: 500; font-size: 10px;">
+        ${formatOpeningHours(pudo.storeTimes)}
+      </div>
+    </div>
+  </div>
               `)
           )
           .addTo(map.current);
 
           // Add click handler
         marker.getElement().addEventListener('click', () => {
-          onSelectPudo(pudo);
-        });
+  console.log('Map marker clicked:', pudo.storeName);
+  console.log('Calling onSelectPudo with:', pudo);
+  onSelectPudo(pudo);
+  
+  // Scroll within the PUDO list container, not the entire viewport
+  setTimeout(() => {
+    const selectedElement = document.querySelector(`[data-pudo-id="${pudo.storeId}-${pudo.lat}-${pudo.long}"]`);
+    const pudoListContainer = document.querySelector('.space-y-2.max-h-60.overflow-y-auto');
+    
+    if (selectedElement && pudoListContainer) {
+      // Calculate position relative to the container
+      const containerRect = pudoListContainer.getBoundingClientRect();
+      const elementRect = selectedElement.getBoundingClientRect();
+      const relativeTop = elementRect.top - containerRect.top + pudoListContainer.scrollTop;
+      
+      // Scroll the container so the selected element is at the top
+      pudoListContainer.scrollTo({
+        top: relativeTop,
+        behavior: 'smooth'
+      });
+    }
+  }, 100);
+});
 
         markers.current.push(marker);
          markersAdded++;
@@ -127,7 +160,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
         map.current = null;
       }
     };
-  }, [pudoOptions, onSelectPudo, searchCenter])
+  }, [pudoOptions, onSelectPudo, searchCenter]);
 
   // Highlight selected marker
   useEffect(() => {
@@ -141,7 +174,7 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
         // Zoom into the selected marker for better street view
       map.current.flyTo({
         center: [selectedPudo.long, selectedPudo.lat],
-        zoom: 16, // Higher zoom level to see streets clearly
+        zoom: 15, // Higher zoom level to see streets clearly
         duration: 1000 // Smooth animation duration in milliseconds
       });  
       } else {
@@ -153,12 +186,80 @@ function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter })
   return (
     <div 
       ref={mapContainer} 
-      className="w-full h-64 rounded-lg border border-gray-300"
+      className="w-full h-80 rounded-lg border border-gray-300"
       style={{ minHeight: '256px' }}
     />
   );
 }
 
+// Pudo opening hours function
+
+function formatOpeningHours(storeTimes) {
+  if (!storeTimes) return 'Hours not available';
+  
+  const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const currentDay = dayNames[today];
+  
+  // Check if store is open today
+  const todaysHours = storeTimes[currentDay];
+  
+  if (!todaysHours || todaysHours.length === 0) {
+    return 'Closed today';
+  }
+  
+  // For today's hours, show them prominently
+  const hoursString = todaysHours[0]; // e.g., "09:00-17:30"
+  const [open, close] = hoursString.split('-');
+  
+  return `Open today: ${open} - ${close}`;
+}
+
+// Get full week opening hours summary
+function getWeeklyHours(storeTimes) {
+  if (!storeTimes) return 'Hours not available';
+  
+  const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  
+  const groupedHours = [];
+  let currentGroup = null;
+  
+  dayNames.forEach((day, index) => {
+    const hours = storeTimes[day];
+    const hoursString = hours && hours.length > 0 ? hours[0] : 'Closed';
+    
+    if (!currentGroup || currentGroup.hours !== hoursString) {
+      // Start new group
+      if (currentGroup) {
+        groupedHours.push(currentGroup);
+      }
+      currentGroup = {
+        days: [dayLabels[index]],
+        hours: hoursString
+      };
+    } else {
+      // Add to current group
+      currentGroup.days.push(dayLabels[index]);
+    }
+  });
+  
+  // Add final group
+  if (currentGroup) {
+    groupedHours.push(currentGroup);
+  }
+  
+  // Format groups
+  return groupedHours.map(group => {
+    const dayRange = group.days.length === 1 
+      ? group.days[0]
+      : group.days.length === 2
+        ? group.days.join(' & ')
+        : `${group.days[0]} - ${group.days[group.days.length - 1]}`;
+    
+    return `${dayRange}: ${group.hours === 'Closed' ? 'Closed' : group.hours.replace('-', ' - ')}`;
+  }).join(' • ');
+}
 
 
 // Required address fields
@@ -207,6 +308,7 @@ const [formData, setFormData] = useState({
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPudoOption, setSelectedPudoOption] = useState(null);
   const [searchCenter, setSearchCenter] = useState(null);
+  const pudoListRef = useRef(null);
   // Loading
   const [isLoadingDeliveryOptions, setIsLoadingDeliveryOptions] = useState(false);
   const [isDeliveryDataReady, setIsDeliveryDataReady] = useState(false);
@@ -347,6 +449,28 @@ const [formData, setFormData] = useState({
       
       console.log('PUDO API response:', pudoData); // ADD THIS LOG
       
+    if (pudoData.results && pudoData.results.length > 0) {
+  console.log('=== PUDO DATA STRUCTURE ANALYSIS ===');
+  
+  pudoData.results.forEach((pudo, index) => {
+    console.log(`PUDO Option ${index + 1}:`, {
+      storeName: pudo.storeName,
+      address: pudo.address,
+      postcode: pudo.postcode,
+      // Look for opening hours fields:
+      openingHours: pudo.openingHours,
+      storeTimes: pudo.storeTimes,
+      operatingHours: pudo.operatingHours,
+      hours: pudo.hours,
+      workingHours: pudo.workingHours,
+      // Show all available keys to see what fields exist:
+      allKeys: Object.keys(pudo),
+      // Show full structure for first PUDO option only:
+      ...(index === 0 ? { fullStructure: JSON.stringify(pudo, null, 2) } : {})
+    });
+  });
+}
+
       if (pudoData.results) {
         setPudoOptions(pudoData.results);
         console.log('PUDO search results:', pudoData.results);
@@ -1474,33 +1598,50 @@ useEffect(() => {
         pudoOptions={pudoOptions} 
         onSelectPudo={setSelectedPudoOption}
         selectedPudo={selectedPudoOption}
-        searchCenter={searchCenter} // searchCenter will be valid here
+        searchCenter={searchCenter}
       />
     </div>
 
     {/* Conditionally show the list of PUDO options */}
     {pudoOptions.length > 0 && (
-      <div className="space-y-2 max-h-60 overflow-y-auto">
-        {pudoOptions.map((pudo, index) => (
-          <div 
-            key={`${pudo.storeId}-${index}-${pudo.lat}-${pudo.long}`}
-            onClick={() => setSelectedPudoOption(pudo)}
-            className={`p-3 border rounded-md cursor-pointer transition-colors ${
-              selectedPudoOption?.storeId === pudo.storeId 
-                ? 'border-[#303efaff] bg-[#303efaff]/10 hover:bg-[#303efaff]/20' 
-                : 'border-gray-200 bg-white hover:bg-gray-50'
-            }`}
-          >
-            <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
-            <p className="text-sm text-gray-600">{pudo.address}</p>
-            <p className="text-sm text-gray-500">{pudo.postcode}</p>
+  <div 
+    ref={pudoListRef}
+    className="space-y-2 max-h-60 overflow-y-auto"
+  >
+    {pudoOptions.map((pudo, index) => (
+      <div 
+        key={`${pudo.storeId}-${index}-${pudo.lat}-${pudo.long}`}
+        data-pudo-id={`${pudo.storeId}-${pudo.lat}-${pudo.long}`} // Add this data attribute
+        onClick={() => setSelectedPudoOption(pudo)}
+        className={`p-3 border rounded-md cursor-pointer transition-colors ${
+          selectedPudoOption && (
+            selectedPudoOption.storeId === pudo.storeId && 
+            selectedPudoOption.storeName === pudo.storeName &&
+            Math.abs(selectedPudoOption.lat - pudo.lat) < 0.0001 && 
+            Math.abs(selectedPudoOption.long - pudo.long) < 0.0001
+          )
+            ? 'border-[#303efaff] bg-[#303efaff]/10 hover:bg-[#303efaff]/20' 
+            : 'border-gray-200 bg-white hover:bg-gray-50'
+        }`}
+      >
+        <h5 className="font-medium text-gray-900">{pudo.storeName}</h5>
+        <p className="text-sm text-gray-600">{pudo.address}</p>
+        <p className="text-sm text-gray-500">{pudo.postcode}</p>
+        
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <p className="text-xs font-medium text-green-700">
+            {formatOpeningHours(pudo.storeTimes)}
+          </p>
+          <p className="text-xs text-gray-500 mt-1" title={getWeeklyHours(pudo.storeTimes)}>
+            {getWeeklyHours(pudo.storeTimes)}
+          </p>
+        </div>
           </div>
         ))}
       </div>
     )}
   </div>
-)}
-          
+)}     
             {/* Payment */}
             </div>
         {/*   <div className="mt-10 border-t border-gray-200 pt-10">
