@@ -58,13 +58,6 @@ export function CartProvider({ children }) {
       const existingItemIndex = prevItems.findIndex(
         item => item.cartItemKey === itemKey
       );
-      
-      if (existingItemIndex >= 0) {
-        alert('Limited Edition Item: Maximum one per customer.');
-        console.log('Item already exists in cart');
-        return prevItems;
-      } else {
-      console.log('Adding new item to cart');
 
         // Add new item
         const newItem = {
@@ -80,9 +73,8 @@ export function CartProvider({ children }) {
         
         console.log('New item created:', newItem);
         return [...prevItems, newItem];
-      }
     });
-  };
+  }
 
   const removeFromCart = (index) => {
     console.log('Removing item at index:', index);

@@ -21,10 +21,8 @@ function classNames(...classes) {
 }
 
 export default function ProductDetail({ product }) {
-
-const getDefaultColor = () => {
+  const getDefaultColor = () => {
     if (product.colourVariants) {
-      // Find which color key maps to the current product slug
       for (const [colorName, slug] of Object.entries(product.colourVariants)) {
         if (slug === product.slug) {
           return product.colors.find(color => color.name === colorName) || product.colors[0];
@@ -37,7 +35,7 @@ const getDefaultColor = () => {
   const [selectedColor, setSelectedColor] = useState(getDefaultColor())
   const [selectedSize, setSelectedSize] = useState(product.sizes[1])
   const [currentImages, setCurrentImages] = useState(product.images)
-  const { addToCart } = useCart()
+  const { addToCart, cartItems } = useCart()
 
   useEffect(() => {
     if (product.colourVariants && selectedColor) {
@@ -48,15 +46,60 @@ const getDefaultColor = () => {
     }
   }, [selectedColor, product])
 
+  // Move these functions inside useEffect or use useCallback to ensure they update with cartItems
+  const isItemInCart = () => {
+  if (!cartItems) return false;
+  
+  const productToCheck = product.colourVariants && product.colourVariants[selectedColor.name] 
+    ? products[product.colourVariants[selectedColor.name]]
+    : product;
+    
+  // Check if this product+color combo exists in any size
+  const baseKey = `${productToCheck.slug}-${selectedColor.name}`;
+  
+  return cartItems.some(item => item.cartItemKey.startsWith(baseKey));
+};
+
+  const getButtonState = () => {
+    // First priority: out of stock
+    if (!selectedSize?.inStock) {
+      return {
+        disabled: true,
+        text: 'Select available size',
+        className: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+      };
+    }
+    
+    // Second priority: already in cart
+    if (isItemInCart()) {
+      return {
+        disabled: true,
+        text: 'Limited edition item - maximum one per customer',
+        className: 'bg-gray-300 text-gray-500 cursor-not-allowed'
+      };
+    }
+    
+    // Available to add
+    return {
+      disabled: false,
+      text: 'Add to cart',
+      className: 'bg-black text-white hover:bg-white hover:text-black hover:border-black cursor-pointer'
+    };
+  };
+
+  // This will recalculate whenever cartItems, selectedColor, or selectedSize changes
+  const buttonState = getButtonState();
+
   const handleAddToCart = () => {
-    if (!selectedSize.inStock) {
-      alert('Please select an available size.')
+    if (!selectedSize.inStock || isItemInCart()) {
       return;
     }
 
     const productToAdd = product.colourVariants && product.colourVariants[selectedColor.name] 
       ? products[product.colourVariants[selectedColor.name]]
       : product;
+
+      
 
     addToCart(productToAdd, selectedColor, selectedSize);
   };
@@ -234,18 +277,15 @@ const getDefaultColor = () => {
                 <button
                     type="button"
                     onClick={handleAddToCart}
-                    disabled={!selectedSize?.inStock}
+                    disabled={buttonState.disabled}
                     className={classNames(
                       'mt-8 flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium focus:ring-2 focus:ring-white/2 focus:ring-offset-2 focus:outline-hidden',
-                      // ✅ ADD THIS: Conditional styling
-                      selectedSize?.inStock 
-                        ? 'bg-black text-white hover:bg-white hover:text-black hover:border-black cursor-pointer'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      buttonState.className
                     )}
-                    title={!selectedSize?.inStock ? 'Please select an available size' : undefined}
+                    title={buttonState.disabled ? buttonState.text : undefined}
                   >
-                    {selectedSize?.inStock ? 'Add to cart' : 'Select available size'}
-                </button>
+                    {buttonState.text}
+                  </button>
               </form>
 
               {/* Product details */}
