@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { StarIcon } from '@heroicons/react/20/solid'
 import { Radio, RadioGroup } from '@headlessui/react'
 import { CurrencyDollarIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline'
 import { useCart } from '@/context/CartContext'
+import { products } from '@/data/products'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -20,21 +21,44 @@ function classNames(...classes) {
 }
 
 export default function ProductDetail({ product }) {
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
+
+const getDefaultColor = () => {
+    if (product.colourVariants) {
+      // Find which color key maps to the current product slug
+      for (const [colorName, slug] of Object.entries(product.colourVariants)) {
+        if (slug === product.slug) {
+          return product.colors.find(color => color.name === colorName) || product.colors[0];
+        }
+      }
+    }
+    return product.colors[0];
+  };
+
+  const [selectedColor, setSelectedColor] = useState(getDefaultColor())
   const [selectedSize, setSelectedSize] = useState(product.sizes[1])
+  const [currentImages, setCurrentImages] = useState(product.images)
   const { addToCart } = useCart()
+
+  useEffect(() => {
+    if (product.colourVariants && selectedColor) {
+      const variantSlug = product.colourVariants[selectedColor.name]
+      if (variantSlug && products[variantSlug]) {
+        setCurrentImages(products[variantSlug].images)
+      }
+    }
+  }, [selectedColor, product])
 
   const handleAddToCart = () => {
     if (!selectedSize.inStock) {
       alert('Please select an available size.')
       return;
     }
-    console.log('Adding to cart:', {
-      product: product.name,
-      color: selectedColor.name,
-      size: selectedSize.name
-    });
-    addToCart(product, selectedColor, selectedSize);
+
+    const productToAdd = product.colourVariants && product.colourVariants[selectedColor.name] 
+      ? products[product.colourVariants[selectedColor.name]]
+      : product;
+
+    addToCart(productToAdd, selectedColor, selectedSize);
   };
 
   return (
@@ -103,23 +127,23 @@ export default function ProductDetail({ product }) {
             {/* Image gallery */}
             <div className="mt-8 lg:col-span-7 lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:mt-0">
               <h2 className="sr-only">Images</h2>
-
               <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-rows-3 lg:gap-8">
-                {product.images.map((image) => (
+                {currentImages.map((image) => (
                   <Image
-                    key={image.id}
+                    key={`${selectedColor.name}-${image.id}`}
                     alt={image.imageAlt}
                     src={image.imageSrc}
                     width={700}
                     height={452.39}
                     className={classNames(
                       image.primary ? 'lg:col-span-2 lg:row-span-2' : 'hidden lg:block',
-                      'rounded-lg',
+                      'rounded-lg transition-opacity duration-300',
                     )}
                   />
                 ))}
               </div>
             </div>
+      
 
             <div className="mt-8 lg:col-span-5">
               <form>
@@ -168,68 +192,60 @@ export default function ProductDetail({ product }) {
                     >
                       {product.sizes.map((size) => (
                         <Radio
-  key={size.name}
-  value={size}
-  disabled={!size.inStock}
-  className={classNames(
-    size.inStock ? 'cursor-pointer focus:outline-hidden' : 'cursor-not-allowed opacity-25',
-    'relative flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 data-checked:border-transparent data-checked:bg-black data-checked:text-white data-checked:hover:bg-white data-checked:hover:text-black data-checked:hover:border-black data-focus:ring-2 data-focus:ring-white/20 data-focus:ring-offset-2 sm:flex-1',
-    !size.inStock && "group"
-  )}
-  title={!size.inStock ? `Size ${size.name} is currently out of stock` : undefined}
->
-  {/* ✅ Text content */}
-  <span className="relative z-10">
-    {size.name}
-  </span>
-  
-  {/* ✅ Diagonal line across the ENTIRE button box */}
-  {!size.inStock && (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div 
-        className="bg-gray-200 h-0.5"
-        style={{
-          width: '141%', // Ensures it reaches corners on all screen sizes
-          transform: 'rotate(30deg)', // Keep your exact 30-degree angle
-          transformOrigin: 'center'
-        }}
-      />
-    </div>
-  </div>
-)}
-  
-  {/* ✅ Hover tooltip */}
-  {!size.inStock && (
-    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
-      Out of stock
-      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
-    </div>
-  )}
-</Radio>
+                          key={size.name}
+                          value={size}
+                          disabled={!size.inStock}
+                          className={classNames(
+                            size.inStock ? 'cursor-pointer focus:outline-hidden' : 'cursor-not-allowed opacity-25',
+                            'relative flex items-center justify-center rounded-md border border-gray-200 bg-white px-3 py-3 text-sm font-medium text-gray-900 uppercase hover:bg-gray-50 data-checked:border-transparent data-checked:bg-black data-checked:text-white data-checked:hover:bg-white data-checked:hover:text-black data-checked:hover:border-black data-focus:ring-2 data-focus:ring-white/20 data-focus:ring-offset-2 sm:flex-1',
+                            !size.inStock && "group"
+                          )}
+                          title={!size.inStock ? `Size ${size.name} is currently out of stock` : undefined}
+                        >
+                          <span className="relative z-10">
+                            {size.name}
+                          </span>
+                          {!size.inStock && (
+                          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div 
+                                className="bg-gray-200 h-0.5"
+                                style={{
+                                  width: '141%', // Ensures it reaches corners on all screen sizes
+                                  transform: 'rotate(30deg)', // Keep your exact 30-degree angle
+                                  transformOrigin: 'center'
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+                          {!size.inStock && (
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20">
+                              Out of stock
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                          )}
+                        </Radio>
                       ))}
                     </RadioGroup>
                   </fieldset>
                 </div>
 
                 <button
-  type="button"
-  onClick={handleAddToCart}
-  // ✅ ADD THIS: Disable when out of stock
-  disabled={!selectedSize?.inStock}
-  className={classNames(
-    'mt-8 flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium focus:ring-2 focus:ring-white/2 focus:ring-offset-2 focus:outline-hidden',
-    // ✅ ADD THIS: Conditional styling
-    selectedSize?.inStock 
-      ? 'bg-black text-white hover:bg-white hover:text-black hover:border-black cursor-pointer'
-      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-  )}
-  // ✅ ADD THIS: Tooltip for button
-  title={!selectedSize?.inStock ? 'Please select an available size' : undefined}
->
-  {/* ✅ ADD THIS: Dynamic text */}
-  {selectedSize?.inStock ? 'Add to cart' : 'Select available size'}
-</button>
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={!selectedSize?.inStock}
+                    className={classNames(
+                      'mt-8 flex w-full items-center justify-center rounded-md border border-transparent px-8 py-3 text-base font-medium focus:ring-2 focus:ring-white/2 focus:ring-offset-2 focus:outline-hidden',
+                      // ✅ ADD THIS: Conditional styling
+                      selectedSize?.inStock 
+                        ? 'bg-black text-white hover:bg-white hover:text-black hover:border-black cursor-pointer'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    )}
+                    title={!selectedSize?.inStock ? 'Please select an available size' : undefined}
+                  >
+                    {selectedSize?.inStock ? 'Add to cart' : 'Select available size'}
+                </button>
               </form>
 
               {/* Product details */}

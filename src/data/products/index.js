@@ -28,7 +28,6 @@ export const products = {
     ],
     colors: [
       { name: "Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Heather Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
     ],
     sizes: [
       { name: "XXS", inStock: false },
@@ -65,7 +64,7 @@ export const products = {
         },
         {
             id: 2,
-            imageSrc: "/images/blacktee1.png",
+            imageSrc: "/images/greytee1.png",
             imageAlt: "Back of the black tee",
             primary: false,
         },
@@ -78,8 +77,12 @@ export const products = {
     ],
     colors: [
       { name: "Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Heather Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
+      { name: "Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
     ],
+    colourVariants: {
+    "Black": "black-tee",
+    "Grey": "grey-tee"
+        },
     sizes: [
       { name: "XXS", inStock: false },
       { name: "XS", inStock: false },
@@ -127,8 +130,12 @@ export const products = {
     ],
     colors: [
       { name: "Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Heather Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
+      { name: "Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
     ],
+    colourVariants: {
+    "Black": "black-hoodie",
+    "Grey": "grey-hoodie"
+        },
     sizes: [
       { name: "XXS", inStock: false },
       { name: "XS", inStock: false },
@@ -176,8 +183,12 @@ export const products = {
     ],
     colors: [
       { name: "Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Heather Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
+      { name: "Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
     ],
+    colourVariants: {
+    "Black": "black-tee",
+    "Grey": "grey-tee"
+        },
     sizes: [
       { name: "XXS", inStock: false },
       { name: "XS", inStock: false },
@@ -225,8 +236,12 @@ export const products = {
     ],
     colors: [
       { name: "Black", bgColor: "bg-gray-900", selectedColor: "ring-gray-900" },
-      { name: "Heather Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
+      { name: "Grey", bgColor: "bg-gray-400", selectedColor: "ring-gray-400" },
     ],
+    colourVariants: {
+    "Black": "black-hoodie",
+    "Grey": "grey-hoodie"
+        },
     sizes: [
       { name: "XXS", inStock: false },
       { name: "XS", inStock: false },
