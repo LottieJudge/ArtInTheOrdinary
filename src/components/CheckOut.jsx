@@ -294,6 +294,13 @@ const [formData, setFormData] = useState({
     size: '',
   })
 
+  useEffect(() => {
+  // Auto-populate collection postcode when main postcode is entered
+  if (formData.post_code && formData.post_code.length >= 5) {
+    setCollectionPostcode(formData.post_code);
+  }
+}, [formData.post_code]);
+
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
