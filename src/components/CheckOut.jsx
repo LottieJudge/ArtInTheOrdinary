@@ -879,7 +879,7 @@ const fetchStandardDeliveryOptions = async () => {
               fullBookingCode: selectedOption.bookingCode,
               price: `£${selectedOption.shippingCost?.toFixed(2) || '5.95'}`,
               turnaround: deliveryDate 
-                ? `Delivery by ${formatDeliveryDate(deliveryDate)} (${optionType})`
+                ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
                 : '3 - 5 working days',
               carrierService: selectedOption.fullName,
               deliveryWindow: selectedOption.delivery,
