@@ -23,7 +23,7 @@ export default function OrderConfirmation() {
     <div className="bg-white">
       <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
         <div className="max-w-xl">
-          <h1 className="text-base font-medium text-indigo-600">Thank you!</h1>
+          <h1 className="text-base font-medium text-[#303efa]">Thank you!</h1>
           <p className="mt-2 text-4xl font-bold tracking-tight sm:text-5xl">It's on the way!</p>
           <p className="mt-2 text-base text-gray-500">Your order has been confirmed and will be with you soon.</p>
         </div>

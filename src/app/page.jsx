@@ -62,6 +62,7 @@ export default function HomePage() {
     <Hero
       title=""
       description=""
+      alt="Maison Metapack hero image"
       image="/images/hero.png"
     />
     <HeroExplainer

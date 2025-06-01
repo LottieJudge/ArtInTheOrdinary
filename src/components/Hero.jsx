@@ -3,15 +3,14 @@ import Image from "next/image";
 
 export default function Hero ({image, alt}) {
     return (
-      <div className="z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center sm:py-64 lg:py-110 lg:px-0">
-            <Image
-              src={image}
-              alt={alt}
-              fill
-              priority
-              className="object-cover object-center z-[-1]"
-              style={{ zIndex: -1, objectPosition: 'center top' }}
-            />
+       <div className="w-full h-96 lg:h-screen relative overflow-hidden">
+      <Image
+        src={image}
+        alt={alt}
+        fill
+        priority
+        className="object-cover"
+      />
               
            {/* <div className="bg-white/25 backdrop-blur-sm p-8 rounded-lg shadow-md">
             <h1 className="text-4xl font-bold tracking-tight text-black lg:text-6xl">New arrivals are here</h1>
