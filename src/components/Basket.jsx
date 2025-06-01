@@ -54,33 +54,8 @@ import Image from 'next/image'
             <p className="mt-1 text-sm font-medium text-gray-900">{item.price}</p>
         <div className="mt-4 flex items-center">
           <span className="mr-2 text-sm text-gray-500">Qty:</span>
-          <div className="flex items-center border border-gray-300 rounded-md">
-            <button
-              type="button"
-              onClick={() => updateQuantity(index, (item.quantity || 1) - 1)}
-              disabled={(item.quantity || 1) <= 1}
-              className="p-1 text-gray-600 hover:text-gray-900 disabled:opacity-50"
-            >
-          <span className="sr-only">Decrease quantity</span>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-          </svg>
-        </button>
-        
-        <span className="px-2 py-1 text-sm text-gray-900">{item.quantity || 1}</span>
-        
-        <button
-          type="button"
-          onClick={() => updateQuantity(index, (item.quantity || 1) + 1)}
-          className="p-1 text-gray-600 hover:text-gray-900"
-        >
-          <span className="sr-only">Increase quantity</span>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
-      </div>
-    </div>
+          <div className="text-sm text-gray-900">1</div>
+        </div>
   </div>
           
           {/* Quantity and remove button */}

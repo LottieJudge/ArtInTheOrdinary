@@ -55,19 +55,17 @@ export function CartProvider({ children }) {
       console.log('Generated item key:', itemKey);
       console.log('Existing items:', prevItems.map(item => item.cartItemKey));
       
-      // Check if item already exists
       const existingItemIndex = prevItems.findIndex(
         item => item.cartItemKey === itemKey
       );
       
       if (existingItemIndex >= 0) {
-        console.log('Updating existing item at index:', existingItemIndex);
-        // Update existing item quantity
-        const updatedItems = [...prevItems];
-        updatedItems[existingItemIndex].quantity += quantity;
-        return updatedItems;
+        alert('Limited Edition Item: Maximum one per customer.');
+        console.log('Item already exists in cart');
+        return prevItems;
       } else {
-        console.log('Adding new item to cart');
+      console.log('Adding new item to cart');
+
         // Add new item
         const newItem = {
           cartItemKey: itemKey,
@@ -77,7 +75,7 @@ export function CartProvider({ children }) {
           imageAlt: product.images.find(img => img.primary)?.imageAlt,
           color: color,
           size: size,
-          quantity: quantity
+          quantity: 1
         };
         
         console.log('New item created:', newItem);
@@ -93,7 +91,7 @@ export function CartProvider({ children }) {
 
   const updateQuantity = (index, newQuantity) => {
     console.log('Updating quantity at index:', index, 'to:', newQuantity);
-    if (newQuantity < 1) return;
+    if (newQuantity !== 0 && newQuantity !== 1) return;
     setCartItems(prevItems => {
       const updatedItems = [...prevItems];
       updatedItems[index].quantity = newQuantity;
