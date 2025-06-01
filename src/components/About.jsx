@@ -7,9 +7,9 @@ export default function About() {
       {/* Full-width image section */}
       <div className="relative w-full h-[1200px]"> {/* Adjust height as needed */}
         <Image
-          alt="Hipster image"
+          alt="Maison Metapack Lobby"
           fill
-          src="/images/hipster.jpg"
+          src="/images/lobby.png"
           className="object-cover w-full"
           priority
         />
@@ -30,22 +30,126 @@ export default function About() {
             />
             <use x={86} href="#b56e9dab-6ccb-4d32-ad02-6b4bb5d9bbeb" />
           </svg>
-          <blockquote className="text-xl/8 font-semibold text-black sm:text-2xl/9">
-            <p>
-             We started about:blank in 2021 to create contemporary menswear for our friends and community. It began with a single silhouette – our signature cropped, boxy tee – which we shared with artists and DJs around the world.
-
-            Through editorial storytelling, focused product, and a commitment to quality, the brand grew quickly. The goal has always been to elevate the everyday through considered materials and sharp design.
-
-            Now based in a former Victorian paper factory in East London, we’re a growing team shaping a community-first approach to menswear – built on limited drops, product innovation, and pieces designed to live with you over time.
-
-
-
-            Subscribe to our mailing list for early access to future releases.
-            </p>
-          </blockquote>
-          <figcaption className="mt-8 text-base">
-            <div className="font-semibold text-black">Adam Halbritter</div>
-            <div className="mt-1 text-gray-600">Voice of a generation</div>
+          
+          <div className="prose prose-lg max-w-none">
+            <h2 className="text-3xl font-bold text-black mb-8">About Maison Metapack</h2>
+            
+            <div className="text-xl/8 text-gray-700 space-y-6">
+              <p>
+                Maison Metapack is a curated merchandise webshop designed to bring the world of delivery to life — through design, culture, and commerce. But this isn't just about limited-edition pieces. This is a live environment built to showcase what Metapack can really do.
+              </p>
+              
+              <p>
+                Soon, Maison Metapack will become a complete test ground for brands and retailers to experience Metapack's full capabilities — from the moment a customer checks out, to the moment their order is delivered and analyzed. With also the addition of real photos of our team in the merch and not AI interpretations.
+              </p>
+              
+              <p>
+                Built on Metapack's enterprise delivery management platform, the experience reflects what leading global brands already rely on every day. With over 25 years of delivery expertise, Metapack enables retailers to:
+              </p>
+              
+              <ul className="list-disc pl-6 space-y-2 text-lg">
+                <li>Automate shipping using a vast global carrier library</li>
+                <li>Offer dynamic delivery options at checkout to increase conversions</li>
+                <li>Provide real-time tracking and reduce customer service costs</li>
+                <li>Unlock deep delivery insights to drive performance and recover costs</li>
+              </ul>
+              
+              <p className="font-semibold text-black">
+                Maison Metapack lets you see — and feel — the future of ecommerce delivery.
+              </p>
+            </div>
+            
+            {/* Explore More Section */}
+            <div className="mt-16 border-t border-gray-200 pt-16">
+              <h3 className="text-2xl font-bold text-black mb-8">Explore More</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <a 
+                  href="https://www.metapack.com/resources/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group block p-6 border border-gray-200 rounded-lg hover:border-black transition-colors"
+                >
+                  <div className="flex items-start space-x-3">
+                    <Image 
+                        src="/icons/book.svg" 
+                        alt="Resources icon"
+                        width={40}
+                        height={40}
+                      />
+                    <div>
+                      <h4 className="font-semibold text-black group-hover:underline">Metapack Resources and Case Studies</h4>
+                      <p className="text-gray-600 mt-1">Visit Resource Hub →</p>
+                    </div>
+                  </div>
+                </a>
+                
+                <a 
+                  href="https://help.metapack.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group block p-6 border border-gray-200 rounded-lg hover:border-black transition-colors"
+                >
+                  <div className="flex items-start space-x-3">
+                    <Image 
+                        src="/icons/gear.svg" 
+                        alt="Resources icon"
+                        width={40}
+                        height={40}
+                      />
+                    <div>
+                      <h4 className="font-semibold text-black group-hover:underline">How Our Technology Works</h4>
+                      <p className="text-gray-600 mt-1">Visit the Help Centre →</p>
+                    </div>
+                  </div>
+                </a>
+                
+                <a 
+                  href="https://developers.metapack.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group block p-6 border border-gray-200 rounded-lg hover:border-black transition-colors"
+                >
+                  <div className="flex items-start space-x-3">
+                    <Image 
+                        src="/icons/laptop.svg" 
+                        alt="Resources icon"
+                        width={40}
+                        height={40}
+                      />
+                    <div>
+                      <h4 className="font-semibold text-black group-hover:underline">Developer Documentation</h4>
+                      <p className="text-gray-600 mt-1">Explore API & Integration Docs →</p>
+                    </div>
+                  </div>
+                </a>
+                
+                <a 
+                  href="https://www.metapack.com/contact/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group block p-6 border border-gray-200 rounded-lg hover:border-black transition-colors"
+                >
+                  <div className="flex items-start space-x-3">
+                    <Image 
+                        src="/icons/mailbox.svg" 
+                        alt="Resources icon"
+                        width={40}
+                        height={40}
+                      />
+                    <div>
+                      <h4 className="font-semibold text-black group-hover:underline">Contact Metapack</h4>
+                      <p className="text-gray-600 mt-1">Get in Touch →</p>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <figcaption className="mt-12 text-base">
+            <div className="font-semibold text-black">The Metapack Team</div>
+            <div className="mt-1 text-gray-600">Delivering the future of ecommerce</div>
           </figcaption>
         </figure>
       </div>
