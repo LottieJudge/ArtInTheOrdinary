@@ -1107,10 +1107,11 @@ useEffect(() => {
       item_ordered: JSON.stringify(cartItems),
       size: cartItems[0]?.size || ''
     }])
+    .select();
     if (orderError) {
       console.error('Supabase insert error:', orderError);
     }
-    
+    const orderId = orderData[0].id;
     // generate the shipping label
     const labelResponse = await fetch('/api/metapack/generate-shipping-label', {
       method: 'POST',
@@ -1153,6 +1154,7 @@ useEffect(() => {
         data: {
           firstName: formData.first_name,
           orderDetails: {
+            orderNumber: `MM-${orderId}`,
             items: cartItems,
             totals: orderTotals,
             deliveryMethod: selectedDeliveryMethod,

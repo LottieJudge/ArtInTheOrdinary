@@ -78,7 +78,7 @@ export const OrderConfirmationEmail = ({
 
           <Container style={valueProp}>
             <Text style={valuePropText}>
-            This experience is powered by <strong>Metapack</strong> – the enterprise-grade delivery management platform used by the world's leading brands, such as H&M, John Lewis, and Mountain Warehouse, to name a few.'.
+            This experience is powered by <strong>Metapack</strong> – the enterprise-grade delivery management platform used by the world's leading brands, such as H&M, John Lewis, and Mountain Warehouse, to name a few.
               <br /><br />
               From intelligent checkout delivery options to real-time tracking and post-purchase 
               insights, Metapack helps ensure every order arrives exactly how and when it should.
@@ -90,7 +90,7 @@ export const OrderConfirmationEmail = ({
           </Container>
 
           <Container style={resources}>
-            <Text style={resourcesHeading}>Explore how <strong>Metapack</strong>Metapack can elevate your end-to-end customer delivery experience:'</Text>
+            <Text style={resourcesHeading}>Explore how Metapack can elevate your end-to-end customer delivery experience:</Text>
             <ul style={resourcesList}>
               <li>
                 <Link style={link} href="https://auctane.share.mindtickle.com/room/9d3452c8-c96f-48c9-9f2b-509af52b5bb8">
@@ -215,6 +215,8 @@ const footer = {
 
 const footerLogo = {
   opacity: '0.7',
+  display: 'block',
+  margin: '0 auto'
 };
 
 const copyright = {
