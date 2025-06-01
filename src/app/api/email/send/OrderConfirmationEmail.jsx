@@ -52,7 +52,7 @@ export const OrderConfirmationEmail = ({
           <Text style={text}>
             Dear {firstName},
             <br /><br />
-            Thank you for your order. Your items are now being prepared for dispatch. 
+            Thank you for your order. Your items are now being prepared for despatch. 
             You will receive tracking details once your order ships.
           </Text>
 
@@ -78,39 +78,28 @@ export const OrderConfirmationEmail = ({
 
           <Container style={valueProp}>
             <Text style={valuePropText}>
-              This experience is powered by <strong>Metapack</strong> – the enterprise-grade 
-              delivery management platform used by the world's leading brands.
+            This experience is powered by <strong>Metapack</strong> – the enterprise-grade delivery management platform used by the world's leading brands, such as H&M, John Lewis, and Mountain Warehouse, to name a few.'.
               <br /><br />
               From intelligent checkout delivery options to real-time tracking and post-purchase 
               insights, Metapack helps ensure every order arrives exactly how and when it should.
               <br /><br />
               <strong>Performance, reliability, and scale.</strong><br />
               Over 1 billion parcels shipped annually, supported by 350+ global carriers, 
-              99% platform uptime, and decades of delivery expertise.
+              99.9% platform uptime, and decades of delivery expertise.
             </Text>
           </Container>
 
           <Container style={resources}>
-            <Text style={resourcesHeading}>Explore More:</Text>
+            <Text style={resourcesHeading}>Explore how <strong>Metapack</strong>Metapack can elevate your end-to-end customer delivery experience:'</Text>
             <ul style={resourcesList}>
               <li>
                 <Link style={link} href="https://auctane.share.mindtickle.com/room/9d3452c8-c96f-48c9-9f2b-509af52b5bb8">
-                  Metapack Resources & Case Studies
+                  Learn More
                 </Link>
               </li>
               <li>
-                <Link style={link} href="https://help.metapack.com/hc/en-gb">
-                  How Our Technology Works
-                </Link>
-              </li>
-              <li>
-                <Link style={link} href="https://dev.metapack.com/">
-                  Developer Docs
-                </Link>
-              </li>
-              <li>
-                <Link style={link} href="https://www.metapack.com/form">
-                  Contact Metapack
+                <Link style={link} href="https://www.metapack.com/form/">
+                  Contact Us
                 </Link>
               </li>
             </ul>
@@ -216,8 +205,7 @@ const resourcesList = {
 };
 
 const link = {
-  color: '#000',
-  textDecoration: 'none',
+  color: 'blue',  
 };
 
 const footer = {
