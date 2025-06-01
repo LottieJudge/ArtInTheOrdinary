@@ -316,6 +316,12 @@ const [formData, setFormData] = useState({
   // address validation logic
   const [isAddressComplete, setIsAddressComplete] = useState(false);
 
+  // GDPR Consent
+  const [consentCheckboxes, setConsentCheckboxes] = useState({
+  marketing: false,
+  privacyPolicy: false
+});
+
   // Check if address is complete
   useEffect(() => {
     const isComplete = requiredAddressFields.every(field => 
@@ -1105,7 +1111,10 @@ useEffect(() => {
       post_code: formData.post_code,
       phone_number: formData.phone_number,
       item_ordered: JSON.stringify(cartItems),
-      size: cartItems[0]?.size || ''
+      size: cartItems[0]?.size || '',
+      marketing_consent: consentCheckboxes.marketing,
+      privacy_policy_consent: consentCheckboxes.privacyPolicy,
+      consent_timestamp: new Date().toISOString()
     }])
     if (orderError) {
       console.error('Supabase insert error:', orderError);
@@ -1203,6 +1212,15 @@ useEffect(() => {
     alert(`Order submission failed: ${error.message}`);
     }
   };
+
+  // GDPR handler
+
+  const handleConsentChange = (checkboxType) => {
+  setConsentCheckboxes(prev => ({
+    ...prev,
+    [checkboxType]: !prev[checkboxType]
+  }));
+};
  
 
   return (
@@ -1824,16 +1842,94 @@ useEffect(() => {
                 </div>
               </dl>
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
+{/* Consent Checkboxes */}
+  <div className="space-y-4 mb-6">
+    {/* Marketing Consent */}
+    <div className="flex items-start">
+      <div className="flex items-center h-5">
+        <input
+          id="marketing-consent"
+          name="marketing-consent"
+          type="checkbox"
+          checked={consentCheckboxes.marketing}
+          onChange={() => handleConsentChange('marketing')}
+          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black focus:ring-2"
+        />
+      </div>
+      <div className="ml-3">
+        <label htmlFor="marketing-consent" className="text-sm text-gray-700">
+          I agree that Auctane Limited may use my personal data for marketing purposes, as described in the{' '}
+          <a 
+            href="/privacy-policy" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-black underline hover:text-gray-700"
+          >
+            Privacy Policy
+          </a>
+          .
+        </label>
+        <p className="text-xs text-gray-500 mt-1">
+          You can withdraw your consent at any time by contacting us at{' '}
+          <a 
+            href="mailto:dataprotection@metapack.com" 
+            className="text-black underline hover:text-gray-700"
+          >
+            dataprotection@metapack.com
+          </a>
+          {' '}or by following the unsubscribe link in our emails.
+        </p>
+      </div>
+    </div>
+
+    {/* Privacy Policy Consent */}
+    <div className="flex items-start">
+      <div className="flex items-center h-5">
+        <input
+          id="privacy-policy-consent"
+          name="privacy-policy-consent"
+          type="checkbox"
+          checked={consentCheckboxes.privacyPolicy}
+          onChange={() => handleConsentChange('privacyPolicy')}
+          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black focus:ring-2"
+        />
+      </div>
+      <div className="ml-3">
+        <label htmlFor="privacy-policy-consent" className="text-sm text-gray-700">
+          I have read and accept the{' '}
+          <a 
+            href="/privacy-policy" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-black underline hover:text-gray-700"
+          >
+            Privacy Policy
+          </a>
+          , which explains how my personal data will be used and my rights under data protection law.
+        </label>
+      </div>
+    </div>
+  </div>
+
                   <button
                     type="submit"
-                    disabled={isLoadingDeliveryOptions}
+                    disabled={
+                      isLoadingDeliveryOptions || 
+                      !consentCheckboxes.marketing || 
+                      !consentCheckboxes.privacyPolicy
+                    }
                     className={`w-full rounded-md border border-transparent ${
-                      isLoadingDeliveryOptions 
+                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
                         ? 'bg-gray-400 cursor-not-allowed' 
                         : 'bg-black hover:bg-white hover:text-black hover:border-black'
                     } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
                   >
-                    {isLoadingDeliveryOptions ? 'Loading delivery options...' : 'Confirm order'}
+                    {isLoadingDeliveryOptions 
+                      ? 'Loading delivery options...' 
+                      : !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
+                        ? 'Please accept privacy policy to continue'
+                        : 'Confirm order'
+                  }
                   </button>
               </div>
             </div>

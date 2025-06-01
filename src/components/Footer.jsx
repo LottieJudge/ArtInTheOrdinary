@@ -5,6 +5,7 @@ export default function Footer() {
     <footer className="bg-white font-montserrat">
       <div className="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
         <nav className="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6" aria-label="Footer">
+        <a href="/privacy-policy" className="text-gray-600 hover:text-gray-900" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
          {/* <a href="#" className="text-gray-600 hover:text-gray-900">About</a>
           <a href="#" className="text-gray-600 hover:text-gray-900">Blog</a>
           <a href="#" className="text-gray-600 hover:text-gray-900">Jobs</a>
