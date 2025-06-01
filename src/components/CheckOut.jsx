@@ -701,7 +701,6 @@ const getNext14Days = (deliveryWindows = []) => {
             id: 1,
             title: 'Delivery',
             turnaround: 'Various options available',
-            price: 'From £5.95',
             bookingCode: 'DELIVERY_GENERAL',
             carrierServiceCode: 'STANDARD',
             deliveryWindow: null
@@ -710,7 +709,6 @@ const getNext14Days = (deliveryWindows = []) => {
             id: 2,
             title: 'Local Collection Point',
             turnaround: 'Collect when convenient',
-            price: 'From £3.95',
             bookingCode: 'PUDO_GENERAL',
             carrierServiceCode: 'PUDO',
             deliveryWindow: null
@@ -731,7 +729,6 @@ const getNext14Days = (deliveryWindows = []) => {
             id: 1,
             title: 'Delivery',
             turnaround: 'Various options available',
-            price: 'From £5.95',
             bookingCode: 'DELIVERY_GENERAL',
             carrierServiceCode: 'STANDARD',
             deliveryWindow: null
@@ -740,7 +737,6 @@ const getNext14Days = (deliveryWindows = []) => {
             id: 2,
             title: 'Local Collection Point',
             turnaround: 'Collect when convenient',
-            price: 'From £3.95',
             bookingCode: 'PUDO_GENERAL',
             carrierServiceCode: 'PUDO',
             deliveryWindow: null
