@@ -380,6 +380,10 @@ const [formData, setFormData] = useState({
   privacyPolicy: false
 });
 
+  // order submit loading state
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+
+
   // Check if address is complete
   useEffect(() => {
     const isComplete = requiredAddressFields.every(field => 
@@ -1096,6 +1100,8 @@ useEffect(() => {
 
   const handleSubmit = async (formSubmitEvent) => {
     formSubmitEvent.preventDefault();
+
+  setIsSubmittingOrder(true);
 
     if (showDeliverySubOptions && !selectedDeliverySubOption) {
     alert('Please select a delivery option.');
@@ -2059,22 +2065,25 @@ useEffect(() => {
                       isLoadingDeliveryOptions || 
                       !consentCheckboxes.marketing || 
                       !consentCheckboxes.privacyPolicy ||
-                      showClickCollect
+                      showClickCollect ||
+                      isSubmittingOrder
                     }
                     className={`w-full rounded-md border border-transparent ${
-                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy || showClickCollect
+                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy || showClickCollect || isSubmittingOrder
                         ? 'bg-gray-400 cursor-not-allowed' 
                         : 'bg-black hover:bg-white hover:text-black hover:border-black'
                     } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
                   >
-                    {isLoadingDeliveryOptions 
-                      ? 'Loading delivery options...' 
-                      : !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
-                        ? 'Please accept privacy policy to continue'
-                        : showClickCollect
-                          ? 'Click & Collect coming soon - choose another option'
-                          : 'Confirm order'
-                  }
+                    {isSubmittingOrder 
+                      ? 'Processing order...'           // When submitting the order
+                      : isLoadingDeliveryOptions        // When loading delivery data  
+                        ? 'Loading delivery options...' 
+                        : !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
+                          ? 'Please accept privacy policy to continue'
+                          : showClickCollect
+                            ? 'Click & Collect coming soon - choose another option'
+                            : 'Confirm order'
+                    }
                   </button>
               </div>
             </div>
