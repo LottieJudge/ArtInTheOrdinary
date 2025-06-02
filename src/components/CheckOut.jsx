@@ -261,6 +261,53 @@ function getWeeklyHours(storeTimes) {
   }).join(' • ');
 }
 
+const clickCollectLocations = [
+  {
+    id: 'uk-london',
+    name: 'London Office',
+    address: '4th Floor 200 Grays Inn Road',
+    city: 'London',
+    country: 'United Kingdom',
+    postcode: 'WC1X 8XZ',
+    status: 'unavailable'
+  },
+  {
+    id: 'spain-madrid',
+    name: 'Madrid Office',
+    address: 'Paseo Imperial, 14',
+    city: 'Madrid',
+    country: 'Spain',
+    postcode: '28005',
+    status: 'unavailable'
+  },
+  {
+    id: 'poland-zielona',
+    name: 'Zielona Góra Office',
+    address: 'Kostrzyńska 4',
+    city: 'Zielona Góra',
+    country: 'Poland',
+    postcode: '65-127',
+    status: 'unavailable'
+  },
+  {
+    id: 'us-austin',
+    name: 'Austin Office',
+    address: '4301 Bull Creek Rd',
+    city: 'Austin, Texas',
+    country: 'United States',
+    postcode: '78731',
+    status: 'unavailable'
+  },
+  {
+    id: 'australia-sydney',
+    name: 'Darlinghurst Office',
+    address: '223 Liverpool Street',
+    city: 'Darlinghurst, NSW',
+    country: 'Australia',
+    postcode: '2010',
+    status: 'unavailable'
+  }
+];
 
 // Required address fields
 const requiredAddressFields = [
@@ -301,6 +348,10 @@ const [formData, setFormData] = useState({
   }
 }, [formData.post_code]);
 
+
+  //click and collect 
+  const [showClickCollect, setShowClickCollect] = useState(false);
+  const [selectedClickCollectLocation, setSelectedClickCollectLocation] = useState(null);
   // delivery options logic
   const [deliveryOptions, setDeliveryOptions] = useState([]);
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null);
@@ -399,15 +450,29 @@ const [formData, setFormData] = useState({
     if (deliveryMethod.title === 'Delivery') {
       setShowDeliverySubOptions(true);
       setShowCollectionSearch(false); // Hide collection search
+      setShowClickCollect(false); // Hide click & collect
+      setSelectedClickCollectLocation(null); // Clear selected click & collect location
       setPudoOptions([]); // Clear PUDO options
       setSelectedPudoOption(null); // Clear selected PUDO option
       setCollectionPostcode(''); // Clear postcode input
     } else if (deliveryMethod.title === 'Local Collection Point') {
       setShowCollectionSearch(true); // Show collection search
       setShowDeliverySubOptions(false);
+      setShowClickCollect(false); // Hide click & collect
+      setSelectedClickCollectLocation(null); // Clear selected click & collect location
       setSelectedDeliverySubOption(null);
       setShowCalendar(false);
       setSelectedDate(null);
+    } else if (deliveryMethod.title === 'Click & Collect') {
+      setShowClickCollect(true);
+      setShowDeliverySubOptions(false);
+      setShowCollectionSearch(false);
+      setSelectedDeliverySubOption(null);
+      setShowCalendar(false);
+      setSelectedDate(null);
+      setPudoOptions([]);
+      setSelectedPudoOption(null);
+      setCollectionPostcode('');
     } else {
       setShowDeliverySubOptions(false);
       setSelectedDeliverySubOption(null);
@@ -712,7 +777,15 @@ const getNext14Days = (deliveryWindows = []) => {
             bookingCode: 'PUDO_GENERAL',
             carrierServiceCode: 'PUDO',
             deliveryWindow: null
-          }
+          },
+          {
+          id: 3,
+          title: 'Click & Collect',
+          turnaround: 'Collect from our offices',
+          bookingCode: 'CLICK_COLLECT_GENERAL',
+          carrierServiceCode: 'CLICK_COLLECT',
+          deliveryWindow: null
+        }
         ];
 
         setDeliveryOptions(staticDeliveryOptions);
@@ -1664,40 +1737,104 @@ useEffect(() => {
     <p className="text-sm text-gray-500">{pudo.postcode}</p>
   </div>
   
-  {/* Price display with loading state */}
-  <div className="text-right">
-    {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.loading ? (
-      <p className="text-sm text-gray-500">Loading...</p>
-    ) : (
-      <>
-        <p className="text-sm font-medium text-gray-900">
-          {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.shippingCost 
-            ? `£${selectedPudoOption.shippingCost.toFixed(2)}`
-            : pudo.shippingCost 
-              ? `£${pudo.shippingCost.toFixed(2)}`
-              : '£3.95'
-          }
-        </p>
-        <p className="text-xs text-gray-500">Collection fee</p>
-      </>
-    )}
-  </div>
-</div>
-        
-        <div className="mt-2 pt-2 border-t border-gray-100">
-          <p className="text-xs font-medium text-green-700">
-            {formatOpeningHours(pudo.storeTimes)}
-          </p>
-          <p className="text-xs text-gray-500 mt-1" title={getWeeklyHours(pudo.storeTimes)}>
-            {getWeeklyHours(pudo.storeTimes)}
-          </p>
-        </div>
+          {/* Price display with loading state */}
+          <div className="text-right">
+            {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.loading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-gray-900">
+                  {selectedPudoOption?.storeId === pudo.storeId && selectedPudoOption?.shippingCost 
+                    ? `£${selectedPudoOption.shippingCost.toFixed(2)}`
+                    : pudo.shippingCost 
+                      ? `£${pudo.shippingCost.toFixed(2)}`
+                      : '£3.95'
+                  }
+                </p>
+                <p className="text-xs text-gray-500">Collection fee</p>
+              </>
+            )}
           </div>
-        ))}
-      </div>
-    )}
+        </div>
+        
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-xs font-medium text-green-700">
+                      {formatOpeningHours(pudo.storeTimes)}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1" title={getWeeklyHours(pudo.storeTimes)}>
+                      {getWeeklyHours(pudo.storeTimes)}
+                    </p>
+                      </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}     
+              {/* Click & Collect Options */}
+{showClickCollect && (
+  <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose a collection office</h3>
+    <p className="text-sm text-gray-600 mb-4">Select from our global office locations</p>
+    
+    <div className="space-y-3">
+      {clickCollectLocations.map((location) => (
+        <div
+          key={location.id}
+          onClick={() => location.status === 'available' ? setSelectedClickCollectLocation(location) : null}
+          className={`p-4 border rounded-lg transition-colors ${
+            location.status === 'unavailable' 
+              ? 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-75'
+              : selectedClickCollectLocation?.id === location.id
+                ? 'border-[#303efaff] bg-[#303efaff]/10 cursor-pointer hover:bg-[#303efaff]/20'
+                : 'border-gray-200 bg-white cursor-pointer hover:bg-gray-50'
+          }`}
+        >
+        <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-medium text-gray-900">{location.name}</h4>
+                {location.status === 'unavailable' && (
+                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 bg-gray-200 rounded-full">
+                    Coming Soon
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{location.address}</p>
+              <p className="text-sm text-gray-600">{location.city}, {location.country}</p>
+              <p className="text-sm text-gray-500">{location.postcode}</p>
+            </div>
+
+            {location.status === 'unavailable' && (
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Not Available</p>
+                <p className="text-xs text-gray-400">Contact us for info</p>
+              </div>
+            )}
+          </div>
+          
+          {location.status === 'unavailable' && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                This collection point is not yet available. Please select one of the other delivery options to complete your order.
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+
+    {/* Info message */}
+    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+      <p className="text-sm text-blue-800">
+        <span className="font-medium">Please note:</span> Click & Collect is coming soon! 
+        To complete your order today, please choose "Delivery" or "Local Collection Point" options above.
+      </p>
+    </div>
   </div>
-)}     
+)}
+
+
             {/* Payment */}
             </div>
         {/*   <div className="mt-10 border-t border-gray-200 pt-10">
@@ -1921,10 +2058,11 @@ useEffect(() => {
                     disabled={
                       isLoadingDeliveryOptions || 
                       !consentCheckboxes.marketing || 
-                      !consentCheckboxes.privacyPolicy
+                      !consentCheckboxes.privacyPolicy ||
+                      showClickCollect
                     }
                     className={`w-full rounded-md border border-transparent ${
-                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
+                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy || showClickCollect
                         ? 'bg-gray-400 cursor-not-allowed' 
                         : 'bg-black hover:bg-white hover:text-black hover:border-black'
                     } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
@@ -1933,7 +2071,9 @@ useEffect(() => {
                       ? 'Loading delivery options...' 
                       : !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
                         ? 'Please accept privacy policy to continue'
-                        : 'Confirm order'
+                        : showClickCollect
+                          ? 'Click & Collect coming soon - choose another option'
+                          : 'Confirm order'
                   }
                   </button>
               </div>
