@@ -1545,7 +1545,7 @@ useEffect(() => {
 
                 {/* Sub-delivery options for Delivery */}
                 {showDeliverySubOptions && (
-                  <div className="mt-6 pl-4 border-l-2 border-gray-200">
+                  <div className="mt-6 p-6 border border-gray-200 rounded-lg bg-gray-50">
                     <h3 className="text-md font-medium text-gray-900 mb-4">Choose delivery type</h3>
                     <RadioGroup
                       value={selectedDeliverySubOption}
