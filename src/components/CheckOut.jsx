@@ -413,6 +413,7 @@ const [formData, setFormData] = useState({
   } else {
     fetchStandardDeliveryOptions();
     fetchNextDayOptions();
+    fetchNominatedDays();
   }
 }, [formData]);
 
@@ -626,6 +627,11 @@ const getCountryCode = (country) => {
   console.log('🔍 fetchNextDayOptions called!');
   
   try {
+    if (selectedDeliverySubOption?.id === 'nominated') {
+      setIsLoadingDeliveryOptions(true);
+      setIsDeliveryDataReady(false);
+    }
+    
     const customerPostcode = formData.post_code || 'E20 2ST';
     const customerCountry = formData.country || 'United Kingdom';
     
@@ -642,12 +648,14 @@ const getCountryCode = (country) => {
       // Update to show not available
       setDeliverySubOptions(prevOptions => 
         prevOptions.map(option => {
-          if (option.id === 'next') {
+          if (option.id === 'nominated') {
             return {
               ...option,
-              turnaround: 'Not available for your location',
-              price: 'N/A',
-              disabled: false
+              price: `£${nominatedPrice.toFixed(2)}`, // ✅ UPDATE WITH REAL PRICE
+              bookingCode: firstNominatedOption.carrierServiceCode,
+              fullBookingCode: firstNominatedOption.bookingCode,
+              carrierService: firstNominatedOption.fullName,
+              loading: false // ✅ CLEAR LOADING STATE
             };
           }
           return option;
@@ -745,15 +753,45 @@ const getCountryCode = (country) => {
 
       const calendarDates = getNext14Days(data.availableDates);
       setAvailableDates(calendarDates);
-      console.log('Calendar dates with real data:', calendarDates);
+      console.log('Calendar dates with nominated data:', calendarDates);
     } else {
-      console.log('No available dates from API, showing all dates as unavailable');
-      // Show all dates as unavailable - pass empty array so all dates show as unavailable
+      console.log('No nominated day options available - keeping default price');
+      // ✅ UPDATE TO SHOW UNAVAILABLE STATE:
+      setDeliverySubOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.id === 'nominated') {
+            return {
+              ...option,
+              turnaround: 'Not available for your location',
+              price: 'N/A',
+              disabled: true,
+              loading: false
+            };
+          }
+          return option;
+        })
+      );
       setAvailableDates(getNext14Days([]));
     }
-   setIsDeliveryDataReady(true);
+    
+    setIsDeliveryDataReady(true);
   } catch (error) {
     console.error('Error fetching nominated days:', error);
+    // ✅ HANDLE ERROR STATE:
+    setDeliverySubOptions(prevOptions => 
+      prevOptions.map(option => {
+        if (option.id === 'nominated') {
+          return {
+            ...option,
+            turnaround: 'Temporarily unavailable',
+            price: 'N/A', 
+            disabled: true,
+            loading: false
+          };
+        }
+        return option;
+      })
+    );
     setAvailableDates(getNext14Days([]));
   } finally {
     setIsLoadingDeliveryOptions(false);
