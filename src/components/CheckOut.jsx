@@ -413,17 +413,17 @@ const [formData, setFormData] = useState({
   } else {
     fetchStandardDeliveryOptions();
     fetchNextDayOptions();
+    fetchNominatedDays();
   }
 }, [formData]);
 
 
   // Delivery sub-options 
-  const [deliverySubOptions, setDeliverySubOptions] = useState ([
-    { id: 'standard', title: 'Standard delivery', turnaround:"3 - 5 working days", price: '£5.95' },
-    { id: 'next', title: 'Next day delivery', turnaround: "Delivered tomorrow", price: '£6.95' },
-    { id: 'nominated', title: 'Nominated day', turnaround:"Choose a day that suits you", price: '£8.95' },
-    // { id: 'timed', title: 'Timed delivery', turnaround:"AM or PM slot", price: '£10.95' }, hiding as not required for MVP
-  ]);
+  const [deliverySubOptions, setDeliverySubOptions] = useState([
+  { id: 'standard', title: 'Standard delivery', turnaround: "Loading...", price: 'Loading...', loading: true },
+  { id: 'next', title: 'Next day delivery', turnaround: "Loading...", price: 'Loading...', loading: true },
+  { id: 'nominated', title: 'Nominated day', turnaround: "Choose a day that suits you", price: 'Loading...', loading: true },
+]);
 
   const [orderTotals, setOrderTotals] = useState({
     subtotal: 0,
@@ -499,6 +499,17 @@ const [formData, setFormData] = useState({
   };
 
   // Handlers
+const getCountryCode = (country) => {
+  const countryMap = {
+    "United Kingdom": "GBR",
+    "France": "FRA", 
+    "Germany": "DEU",
+    "Italy": "ITA",
+    "Spain": "ESP",
+    "Netherlands": "NLD"
+  };
+  return countryMap[country] || 'GBR';
+};
   
   // Handle collection postcode change
   const handleCollectionPostcodeChange = (event) => {
@@ -616,13 +627,19 @@ const [formData, setFormData] = useState({
   console.log('🔍 fetchNextDayOptions called!');
   
   try {
+    if (selectedDeliverySubOption?.id === 'nominated') {
+      setIsLoadingDeliveryOptions(true);
+      setIsDeliveryDataReady(false);
+    }
+    
     const customerPostcode = formData.post_code || 'E20 2ST';
+    const customerCountry = formData.country || 'United Kingdom';
     
-    console.log('Fetching next day delivery options for postcode:', customerPostcode);
+     console.log('Fetching next day delivery options for:', { customerPostcode, customerCountry });
     
-    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&type=next`);
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&country=${encodeURIComponent(customerCountry)}&type=both`);
+    
     const data = await response.json();
-    
     console.log('Next day delivery API response:', data);
 
     if (!data.nextDayOptions || data.nextDayOptions.length === 0) {
@@ -636,7 +653,8 @@ const [formData, setFormData] = useState({
               ...option,
               turnaround: 'Not available for your location',
               price: 'N/A',
-              disabled: false
+              disabled: true,
+              loading: false
             };
           }
           return option;
@@ -672,7 +690,8 @@ const [formData, setFormData] = useState({
               : 'Next working day',
             carrierService: cheapestOption.fullName,
             deliveryWindow: cheapestOption.delivery,
-            disabled: false
+            disabled: false,
+            loading: false
           };
         }
         return option;
@@ -691,30 +710,88 @@ const [formData, setFormData] = useState({
     setIsDeliveryDataReady(false);
     // Use the customer's postcode from the form, fallback to default
     const customerPostcode = formData.post_code || 'E20 2ST';
+    const customerCountry = formData.country || 'United Kingdom';
     
-    console.log('Fetching nominated days for postcode:', customerPostcode);
+    console.log('Fetching nominated days for:', { customerPostcode, customerCountry });
     
-    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}`);
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&country=${encodeURIComponent(customerCountry)}&type=both`);
+    
     const data = await response.json();
-    
     console.log('Nominated days API response:', data);
     console.log('Available dates from API:', data.availableDates);
     
     if (data.availableDates && data.availableDates.length > 0) {
     console.log('Processing delivery windows:', data.availableDates);
 
+    const firstNominatedOption = data.nominatedOptions[0];
+    const nominatedPrice = firstNominatedOption.shippingCost || 8.95;
+
+    setDeliverySubOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.id === 'nominated') {
+            return {
+              ...option,
+              price: `£${nominatedPrice.toFixed(2)}`, // ✅ USE REAL PRICE
+              bookingCode: firstNominatedOption.carrierServiceCode,
+              fullBookingCode: firstNominatedOption.bookingCode,
+              carrierService: firstNominatedOption.fullName
+            };
+          }
+          return option;
+        })
+      );
+
+      // Convert nominated options to the format expected by getNext14Days
+      const deliveryWindows = data.nominatedOptions.map(option => ({
+        from: option.delivery?.from,
+        to: option.delivery?.to,
+        bookingCode: option.bookingCode,
+        carrierServiceCode: option.carrierServiceCode,
+        shippingCost: option.shippingCost
+      }));
+
 
       const calendarDates = getNext14Days(data.availableDates);
       setAvailableDates(calendarDates);
-      console.log('Calendar dates with real data:', calendarDates);
+      console.log('Calendar dates with nominated data:', calendarDates);
     } else {
-      console.log('No available dates from API, showing all dates as unavailable');
-      // Show all dates as unavailable - pass empty array so all dates show as unavailable
+      console.log('No nominated day options available - keeping default price');
+      // ✅ UPDATE TO SHOW UNAVAILABLE STATE:
+      setDeliverySubOptions(prevOptions => 
+        prevOptions.map(option => {
+          if (option.id === 'nominated') {
+            return {
+              ...option,
+              turnaround: 'Not available for your location',
+              price: 'N/A',
+              disabled: true,
+              loading: false
+            };
+          }
+          return option;
+        })
+      );
       setAvailableDates(getNext14Days([]));
     }
-   setIsDeliveryDataReady(true);
+    
+    setIsDeliveryDataReady(true);
   } catch (error) {
     console.error('Error fetching nominated days:', error);
+    // ✅ HANDLE ERROR STATE:
+    setDeliverySubOptions(prevOptions => 
+      prevOptions.map(option => {
+        if (option.id === 'nominated') {
+          return {
+            ...option,
+            turnaround: 'Temporarily unavailable',
+            price: 'N/A', 
+            disabled: true,
+            loading: false
+          };
+        }
+        return option;
+      })
+    );
     setAvailableDates(getNext14Days([]));
   } finally {
     setIsLoadingDeliveryOptions(false);
@@ -773,6 +850,7 @@ const getNext14Days = (deliveryWindows = []) => {
     useEffect(() => {
     async function fetchDeliveryOptions() {
       try {
+        const isUK = formData.country === 'United Kingdom';
         // Create static delivery options for the main selection
         const staticDeliveryOptions = [
           {
@@ -789,7 +867,9 @@ const getNext14Days = (deliveryWindows = []) => {
             turnaround: 'Collect when convenient',
             bookingCode: 'PUDO_GENERAL',
             carrierServiceCode: 'PUDO',
-            deliveryWindow: null
+            deliveryWindow: null,
+            disabled: !isUK, // ✅ ADD DISABLED FLAG
+          unavailable: !isUK
           },
           {
           id: 3,
@@ -835,7 +915,7 @@ const getNext14Days = (deliveryWindows = []) => {
     }
     
     fetchDeliveryOptions();
-  }, []);
+}, [formData.country]);
 
   // Fetch Delivery Options
 
@@ -858,11 +938,14 @@ function formatDeliveryDate(dateString) {
 const fetchStandardDeliveryOptions = async () => {
   try {
     const customerPostcode = formData.post_code || 'E20 2ST';
+    const customerCountry = formData.country || 'United Kingdom';
     
     console.log('Fetching standard delivery options for postcode:', customerPostcode);
     
-    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&type=standard`);
+    const response = await fetch(`/api/metapack/delivery-options?postcode=${encodeURIComponent(customerPostcode)}&country=${encodeURIComponent(customerCountry)}&type=both`);
+    
     const data = await response.json();
+    console.log('Standard delivery API response:', data);
     
     console.log('Standard delivery API response:', data);
 
@@ -1458,7 +1541,12 @@ useEffect(() => {
                       autoComplete="country-name"
                       className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
                     >
-                      <option>United Kingdom</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="France">France</option>
+                      <option value="Germany">Germany</option>
+                      <option value="Italy">Italy</option>
+                      <option value="Spain">Spain</option>
+                      <option value="Netherlands">Netherlands</option>
                     </select>
                     <ChevronDownIcon
                       aria-hidden="true"
@@ -1530,31 +1618,48 @@ useEffect(() => {
                   className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4"
                 >
                   {deliveryOptions.map((deliveryMethod) => (
-                    <Radio
-                      key={deliveryMethod.id}
-                      value={deliveryMethod}
-                      aria-label={deliveryMethod.title}
-                      aria-description={`${deliveryMethod.turnaround} for ${deliveryMethod.price}`}
-                      className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
-                    >
-                      <span className="flex flex-1">
-                        <span className="flex flex-col">
-                          <span className="block text-sm font-medium text-gray-900">{deliveryMethod.title}</span>
-                          <span className="mt-1 flex items-center text-sm text-gray-500">
-                            {deliveryMethod.turnaround}
-                          </span>
-                          <span className="mt-6 text-sm font-medium text-gray-900">{deliveryMethod.price}</span>
-                        </span>
-                      </span>
-                      <CheckCircleIcon
-                        aria-hidden="true"
-                        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
-                      />
-                    </Radio>
+                     <Radio
+    key={deliveryMethod.id}
+    value={deliveryMethod}
+    disabled={deliveryMethod.disabled} // ✅ ADD DISABLED PROP
+    aria-label={deliveryMethod.title}
+    aria-description={`${deliveryMethod.turnaround} for ${deliveryMethod.price}`}
+    className={`group relative flex rounded-lg border p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500 ${
+      deliveryMethod.unavailable 
+        ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-75' // ✅ GREY STYLING
+        : 'cursor-pointer bg-white border-gray-300'
+    }`}
+  >
+    <span className="flex flex-1">
+      <span className="flex flex-col">
+        <span className={`block text-sm font-medium ${
+          deliveryMethod.unavailable ? 'text-gray-500' : 'text-gray-900'
+        }`}>
+          {deliveryMethod.title}
+        </span>
+        <span className={`mt-1 flex items-center text-sm ${
+          deliveryMethod.unavailable ? 'text-gray-400' : 'text-gray-500'
+        }`}>
+          {deliveryMethod.turnaround}
+        </span>
+        <span className={`mt-6 text-sm font-medium ${
+          deliveryMethod.unavailable ? 'text-gray-400' : 'text-gray-900'
+        }`}>
+          {deliveryMethod.price}
+        </span>
+      </span>
+    </span>
+    {!deliveryMethod.unavailable && ( // ✅ ONLY SHOW CHECK ICON IF AVAILABLE
+      <CheckCircleIcon
+        aria-hidden="true"
+        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
+      />
+    )}
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
+    />
+  </Radio>
                   ))}
                 </RadioGroup>
 

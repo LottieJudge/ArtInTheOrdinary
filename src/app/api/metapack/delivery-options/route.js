@@ -1,12 +1,40 @@
+const countryMap = {
+    "United Kingdom": "GBR",
+    "France": "FRA",
+    "Germany": "DEU",
+    "Italy": "ITA",
+    "Spain": "ESP",
+    "Netherlands": "NLD",
+    "GB": "GBR",
+    "FR": "FRA",
+    "DE": "DEU",
+    "IT": "ITA",
+    "ES": "ESP",
+    "NL": "NLD"
+};
+
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const postcode = searchParams.get('postcode') || 'E20 2ST';
+    const inputCountry = searchParams.get('country') || 'United Kingdom';
+    const country = countryMap[inputCountry] || 'GBR';
     const deliveryType = searchParams.get('type') || 'both';
     const warehousePostcode = 'EC3V 0HR';
 
+    console.log('=== DELIVERY OPTIONS API DEBUG ===');
+    console.log('Input parameters:', {
+      postcode,
+      inputCountry,
+      mappedCountry: country,
+      deliveryType
+    });
+
+
     // 14 day delivery slots
     const deliverySlots = getNext14Days();
+    console.log('Generated delivery slots:', deliverySlots);
+
 
     const url = new URL('https://dmo.metapack.com/dmoptions/find');
     url.searchParams.set('key', process.env.METAPACK_DDO_KEY);
@@ -14,7 +42,7 @@ export async function GET(request) {
     url.searchParams.set('wh_pc', warehousePostcode);
     url.searchParams.set('wh_cc', 'GBR');
     url.searchParams.set('c_pc', postcode);
-    url.searchParams.set('c_cc', 'GBR');
+    url.searchParams.set('c_cc', country);
     url.searchParams.set('radius', '1000');
     url.searchParams.set('optionType', 'HOME');
 
@@ -58,29 +86,43 @@ export async function GET(request) {
     }
     
     // Extract just the available delivery windows from the response
-    const deliveryOptions = data.results
-      ? data.results
-          .filter(option => {
-            console.log('Processing option:', {
-              bookingCode: option.bookingCode,
-              groupCodes: option.groupCodes,
-              delivery: option.delivery,
-              optionType: option.optionType
-            });
-            
-            return option.optionType === 'HOME';
-          })
-          .map(option => ({
-            from: option.delivery?.from,
-            to: option.delivery?.to,
-            bookingCode: option.bookingCode,
-            carrierServiceCode: option.carrierServiceCode,
-            fullName: option.fullName,
-            groupCodes: option.groupCodes,
-            shippingCost: option.shippingCost
-          }))
-      : [];
+   const deliveryOptions = data.results
+  ? data.results
+      .filter(option => {
+        console.log('Processing option:', {
+          bookingCode: option.bookingCode,
+          groupCodes: option.groupCodes,
+          delivery: option.delivery,
+          optionType: option.optionType
+        });
+        
+        return option.optionType === 'HOME';
+      })
+      .map(option => {
+        // MOVE THE DEBUG LOGGING HERE - INSIDE THE MAP FUNCTION
+        console.log('📅 Date processing debug:', {
+          originalDeliveryFrom: option.delivery.from,
+          originalDeliveryTo: option.delivery.to,
+          parsedFromDate: new Date(option.delivery.from),
+          parsedToDate: new Date(option.delivery.to),
+          bookingCode: option.bookingCode,
+          groupCode: option.groupCodes[0]
+        });
 
+        return {
+          from: option.delivery?.from,
+          to: option.delivery?.to,
+          bookingCode: option.bookingCode,
+          carrierServiceCode: option.carrierServiceCode,
+          fullName: option.fullName,
+          groupCodes: option.groupCodes,
+          shippingCost: option.shippingCost
+        };
+      })
+  : [];
+
+
+  
     console.log(`Found ${deliveryOptions.length} available delivery windows`);
 
      // Separate standard and nominated options
