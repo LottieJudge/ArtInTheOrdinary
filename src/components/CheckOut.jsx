@@ -648,14 +648,13 @@ const getCountryCode = (country) => {
       // Update to show not available
       setDeliverySubOptions(prevOptions => 
         prevOptions.map(option => {
-          if (option.id === 'nominated') {
+          if (option.id === 'next') {
             return {
               ...option,
-              price: `£${nominatedPrice.toFixed(2)}`, // ✅ UPDATE WITH REAL PRICE
-              bookingCode: firstNominatedOption.carrierServiceCode,
-              fullBookingCode: firstNominatedOption.bookingCode,
-              carrierService: firstNominatedOption.fullName,
-              loading: false // ✅ CLEAR LOADING STATE
+              turnaround: 'Not available for your location',
+              price: 'N/A',
+              disabled: true,
+              loading: false
             };
           }
           return option;
@@ -691,7 +690,8 @@ const getCountryCode = (country) => {
               : 'Next working day',
             carrierService: cheapestOption.fullName,
             deliveryWindow: cheapestOption.delivery,
-            disabled: false
+            disabled: false,
+            loading: false
           };
         }
         return option;
@@ -850,6 +850,7 @@ const getNext14Days = (deliveryWindows = []) => {
     useEffect(() => {
     async function fetchDeliveryOptions() {
       try {
+        const isUK = formData.country === 'United Kingdom';
         // Create static delivery options for the main selection
         const staticDeliveryOptions = [
           {
@@ -866,7 +867,9 @@ const getNext14Days = (deliveryWindows = []) => {
             turnaround: 'Collect when convenient',
             bookingCode: 'PUDO_GENERAL',
             carrierServiceCode: 'PUDO',
-            deliveryWindow: null
+            deliveryWindow: null,
+            disabled: !isUK, // ✅ ADD DISABLED FLAG
+          unavailable: !isUK
           },
           {
           id: 3,
@@ -912,7 +915,7 @@ const getNext14Days = (deliveryWindows = []) => {
     }
     
     fetchDeliveryOptions();
-  }, []);
+}, [formData.country]);
 
   // Fetch Delivery Options
 
@@ -1615,31 +1618,48 @@ useEffect(() => {
                   className="mt-4 grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4"
                 >
                   {deliveryOptions.map((deliveryMethod) => (
-                    <Radio
-                      key={deliveryMethod.id}
-                      value={deliveryMethod}
-                      aria-label={deliveryMethod.title}
-                      aria-description={`${deliveryMethod.turnaround} for ${deliveryMethod.price}`}
-                      className="group relative flex cursor-pointer rounded-lg border border-gray-300 bg-white p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500"
-                    >
-                      <span className="flex flex-1">
-                        <span className="flex flex-col">
-                          <span className="block text-sm font-medium text-gray-900">{deliveryMethod.title}</span>
-                          <span className="mt-1 flex items-center text-sm text-gray-500">
-                            {deliveryMethod.turnaround}
-                          </span>
-                          <span className="mt-6 text-sm font-medium text-gray-900">{deliveryMethod.price}</span>
-                        </span>
-                      </span>
-                      <CheckCircleIcon
-                        aria-hidden="true"
-                        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
-                      />
-                      <span
-                        aria-hidden="true"
-                        className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
-                      />
-                    </Radio>
+                     <Radio
+    key={deliveryMethod.id}
+    value={deliveryMethod}
+    disabled={deliveryMethod.disabled} // ✅ ADD DISABLED PROP
+    aria-label={deliveryMethod.title}
+    aria-description={`${deliveryMethod.turnaround} for ${deliveryMethod.price}`}
+    className={`group relative flex rounded-lg border p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500 ${
+      deliveryMethod.unavailable 
+        ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-75' // ✅ GREY STYLING
+        : 'cursor-pointer bg-white border-gray-300'
+    }`}
+  >
+    <span className="flex flex-1">
+      <span className="flex flex-col">
+        <span className={`block text-sm font-medium ${
+          deliveryMethod.unavailable ? 'text-gray-500' : 'text-gray-900'
+        }`}>
+          {deliveryMethod.title}
+        </span>
+        <span className={`mt-1 flex items-center text-sm ${
+          deliveryMethod.unavailable ? 'text-gray-400' : 'text-gray-500'
+        }`}>
+          {deliveryMethod.turnaround}
+        </span>
+        <span className={`mt-6 text-sm font-medium ${
+          deliveryMethod.unavailable ? 'text-gray-400' : 'text-gray-900'
+        }`}>
+          {deliveryMethod.price}
+        </span>
+      </span>
+    </span>
+    {!deliveryMethod.unavailable && ( // ✅ ONLY SHOW CHECK ICON IF AVAILABLE
+      <CheckCircleIcon
+        aria-hidden="true"
+        className="size-5 text-[#303efaff] group-not-data-checked:hidden"
+      />
+    )}
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
+    />
+  </Radio>
                   ))}
                 </RadioGroup>
 
