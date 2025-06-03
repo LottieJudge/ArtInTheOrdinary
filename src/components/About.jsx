@@ -105,7 +105,7 @@ export default function About() {
                 </a>
                 
                 <a 
-                  href="https://developers.metapack.com/" 
+                  href="https://dev.metapack.com/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="group block p-6 border border-gray-200 rounded-lg hover:border-black transition-colors"
