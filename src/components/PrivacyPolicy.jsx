@@ -281,7 +281,7 @@ export default function PrivacyPolicy() {
                       (e) Profile
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900">
-                      Data subjects consent
+                      Necessary for our legitimate interests (to develop our products and services and grow our business)
                     </td>
                   </tr>
                   <tr className="bg-gray-50">
@@ -296,7 +296,7 @@ export default function PrivacyPolicy() {
                       (e) Profile
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900">
-                      Necessary for our legitimate interests (to develop our products and services and grow our business)
+                      Data subjects consent
                     </td>
                   </tr>
                 </tbody>
