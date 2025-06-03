@@ -115,6 +115,7 @@ export const OrderConfirmationEmail = ({
           />
           <br></br>
           <br></br>
+   
           <Text>
             <strong>Opting Out:</strong>
             <br></br>
