@@ -325,6 +325,15 @@ const requiredAddressFields = [
 export default function CheckOut() {
   const { cartItems, cartTotal, cartSubtotal, cartVAT, clearCart } = useCart();
 
+  useEffect(() => {
+    console.log('📄 CHECKOUT PAGE LOADED at:', new Date().toISOString());
+    console.log('📄 Environment check:', {
+      NODE_ENV: process.env.NODE_ENV,
+      hasSupabaseURL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      currentURL: window.location.href
+    });
+  }, []);
+
 const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
