@@ -2015,7 +2015,7 @@ useEffect(() => {
       </div>
       <div className="ml-3">
         <label htmlFor="marketing-consent" className="text-sm text-gray-700">
-          I agree that Auctane Limited may use my personal data for marketing purposes, as described in the{' '}
+          I agree that Auctane Limited may use my personal data for third-party marketing purposes, as described in the{' '}
           <a 
             href="/privacy-policy" 
             target="_blank"
@@ -2072,13 +2072,12 @@ useEffect(() => {
                     type="submit"
                     disabled={
                       isLoadingDeliveryOptions || 
-                      !consentCheckboxes.marketing || 
                       !consentCheckboxes.privacyPolicy ||
                       showClickCollect ||
                       isSubmittingOrder
                     }
                     className={`w-full rounded-md border border-transparent ${
-                      isLoadingDeliveryOptions || !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy || showClickCollect || isSubmittingOrder
+                      isLoadingDeliveryOptions || !consentCheckboxes.privacyPolicy || showClickCollect || isSubmittingOrder
                         ? 'bg-gray-400 cursor-not-allowed' 
                         : 'bg-black hover:bg-white hover:text-black hover:border-black'
                     } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
@@ -2087,7 +2086,7 @@ useEffect(() => {
                       ? 'Processing order...'           // When submitting the order
                       : isLoadingDeliveryOptions        // When loading delivery data  
                         ? 'Loading delivery options...' 
-                        : !consentCheckboxes.marketing || !consentCheckboxes.privacyPolicy
+                        : !consentCheckboxes.privacyPolicy
                           ? 'Please accept privacy policy to continue'
                           : showClickCollect
                             ? 'Click & Collect coming soon - choose another option'

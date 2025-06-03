@@ -259,22 +259,6 @@ export default function PrivacyPolicy() {
                   </tr>
                   <tr className="bg-gray-50">
                     <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
-                      To deliver relevant website content and advertisements to you and measure or understand the effectiveness of the advertising we serve to you
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
-                      (a) Identity<br/>
-                      (b) Contact<br/>
-                      (c) Profile<br/>
-                      (d) Usage<br/>
-                      (e) Marketing and Communications<br/>
-                      (f) Technical
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-900">
-                      Necessary for our legitimate interests (to study how customers use our products and services, to develop them, to grow our business and to inform our marketing strategy)
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
                       To use data analytics to improve our website, products and services, marketing, customer relationships and experiences
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
@@ -285,7 +269,7 @@ export default function PrivacyPolicy() {
                       Necessary for our legitimate interests (to define types of customers for our products and services, to keep our website updated and relevant, to develop our business and to inform our marketing strategy)
                     </td>
                   </tr>
-                  <tr className="bg-gray-50">
+                  <tr>
                     <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
                       To make suggestions and recommendations to you about products or services that may be of interest to you
                     </td>
@@ -297,10 +281,10 @@ export default function PrivacyPolicy() {
                       (e) Profile
                     </td>
                     <td className="px-4 py-4 text-sm text-gray-900">
-                      Necessary for our legitimate interests (to develop our products and services and grow our business)
+                      Data subjects consent
                     </td>
                   </tr>
-                  <tr>
+                  <tr className="bg-gray-50">
                     <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-300">
                       To enable any of the companies within the Metapack Group to contact you whether by email and/or telephone and send promotional communications, such as providing you with information about products and services, features, surveys, newsletters, offers, promotions, contests, and events where you have indicated that you would like to receive marketing communications; and provide other news or information about us and our partners
                     </td>
