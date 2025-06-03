@@ -119,7 +119,7 @@ export const OrderConfirmationEmail = ({
           <Text>
             <strong>Opting Out:</strong>
             <br></br>
-            You can ask us or third parties to stop sending you marketing messages at any time by following the opt-out links on any marketing message sent to you or by contacting us at dataprotection@metapack.com at any time.
+            You can ask us or third parties to stop sending you marketing messages at any time by following the opt-out links on any marketing message sent to you or by contacting us at <Link style={link} href="mailto:dataprotection@metapack.com">dataprotection@metapack.com</Link>at any time.
           </Text>
           <br></br>
           <br></br>
