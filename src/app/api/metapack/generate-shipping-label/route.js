@@ -29,6 +29,11 @@ export async function POST(req) {
 
     const countryMap = {
         "United Kingdom": "GBR",
+        "France": "FRA",
+        "Germany": "DEU",
+        "Italy": "ITA",
+        "Spain": "ESP",
+        "Netherlands": "NLD"
         };
   // had to add in as the booking code was stopping supabase working with the metapack apis - too many api's 
      if (!bookingCode || typeof bookingCode !== 'string') {
