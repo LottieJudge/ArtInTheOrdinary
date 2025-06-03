@@ -113,6 +113,15 @@ export const OrderConfirmationEmail = ({
             width="140"
             style={footerLogo}
           />
+          <br></br>
+          <br></br>
+          <Text>
+            <strong>Opting Out:</strong>
+            <br></br>
+            You can ask us or third parties to stop sending you marketing messages at any time by following the opt-out links on any marketing message sent to you or by contacting us at dataprotection@metapack.com at any time.
+          </Text>
+          <br></br>
+          <br></br>
           <Text style={copyright}>
             © {today.getFullYear()} Metapack. All rights reserved.
           </Text>
@@ -209,7 +218,8 @@ const link = {
 };
 
 const footer = {
-  textAlign: 'center',
+  textAlign: 'left',
+  fontSize: '12px',
   padding: '40px 0 20px',
 };
 
@@ -220,6 +230,7 @@ const footerLogo = {
 };
 
 const copyright = {
+  textAlign: 'centre',
   fontSize: '12px',
   color: '#888',
   fontFamily: 'Arial, sans-serif',
