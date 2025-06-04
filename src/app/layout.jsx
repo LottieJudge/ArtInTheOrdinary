@@ -3,7 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContactUs from "@/components/ContactUs";
-import { Analytics } from "@vercel/analytics/react"
+import { Analytics } from "@vercel/analytics/next"
 import { CartProvider } from '../context/CartContext';
 
 const playfairDisplay = Playfair_Display({
