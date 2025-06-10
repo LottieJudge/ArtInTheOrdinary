@@ -395,29 +395,21 @@ const [formData, setFormData] = useState({
     setPudoOptions([]);
     setSelectedPudoOption(null);
   } 
-},  [
-  formData.email_address,
-  formData.first_name,
-  formData.last_name,
-  formData.company_name,
-  formData.firstLine_address,
-  formData.city,
-  formData.country,
-  formData.post_code,
-  formData.phone_number  // Add phone back to form validation
-]);
+},  [formData]);
 
 useEffect(() => {
-  // When postcode changes, fetch delivery options for both standard and nominated
+  // When postcode OR country changes, fetch delivery options
   if (formData.post_code && formData.post_code.length >= 5) {
-    console.log('Postcode changed, fetching delivery options for:', formData.post_code);
+    console.log('Postcode or country changed, fetching delivery options for:', {
+      postcode: formData.post_code,
+      country: formData.country
+    });
     
-    // Fetch ALL delivery options when postcode changes
     fetchStandardDeliveryOptions();
-    fetchNextDayOptions();        // ✅ ADD THIS LINE
-    fetchNominatedDays();         // ✅ ADD THIS LINE
+    fetchNextDayOptions();       
+    fetchNominatedDays();         
   }
-}, [formData.post_code]);
+}, [formData.post_code, formData.country]); // ✅ ADD COUNTRY HERE
 
 
   // Delivery sub-options 
@@ -946,6 +938,21 @@ const fetchStandardDeliveryOptions = async () => {
 
     if (!data.standardOptions || data.standardOptions.length === 0) {
       console.log('No standard delivery options available');
+
+      setDeliverySubOptions(prevOptions => 
+    prevOptions.map(option => {
+      if (option.id === 'standard') {
+        return {
+          ...option,
+          turnaround: 'Not available for your location',
+          price: 'N/A',
+          disabled: true,
+          loading: false
+        };
+      }
+      return option;
+    })
+  );
       return;
     }
 
