@@ -18,22 +18,6 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 
-//Delivery options/sub-options, collection options
-function getDeliveryGroupLabel(groupCode) {
-  switch (groupCode.toUpperCase()) {
-    case 'STANDARD':
-    case 'NOMINATED': 
-    case 'NEXTDAY':
-      return 'Delivery'; // All delivery variants go under "Delivery"
-    case 'IN_STORE':
-      return 'In-Store Collection'; // In-store collection
-    case 'PUDO':
-      return 'Local Collection Point'; // In-store collection
-    default:
-      return groupCode;
-  }
-}
-
 // map component for PUDO options
 function MapComponent({ pudoOptions, onSelectPudo, selectedPudo, searchCenter }) {
   const mapContainer = useRef(null);
@@ -497,19 +481,6 @@ const [formData, setFormData] = useState({
       setCollectionPostcode(''); // Clear postcode input
     }
   };
-
-  // Handlers
-const getCountryCode = (country) => {
-  const countryMap = {
-    "United Kingdom": "GBR",
-    "France": "FRA", 
-    "Germany": "DEU",
-    "Italy": "ITA",
-    "Spain": "ESP",
-    "Netherlands": "NLD"
-  };
-  return countryMap[country] || 'GBR';
-};
   
   // Handle collection postcode change
   const handleCollectionPostcodeChange = (event) => {
@@ -1068,97 +1039,6 @@ const fetchStandardDeliveryOptions = async () => {
     console.error('Error fetching standard delivery options:', error);
   }
 };
-
-/* Function to switch between fastest/cheapest
-const switchDeliveryOption = (optionType) => {
-  setDeliverySubOptions(prevOptions => 
-    prevOptions.map(option => {
-      if (option.id === 'standard' && option._fastestOption && option._cheapestOption) {
-        const selectedOption = optionType === 'fastest' ? option._fastestOption : option._cheapestOption;
-        const deliveryDate = selectedOption.to;  // ✅ Use .to directly (not delivery.to)
-        
-        return {
-          ...option,
-          bookingCode: selectedOption.carrierServiceCode,
-          fullBookingCode: selectedOption.bookingCode,
-          price: `£${selectedOption.shippingCost?.toFixed(2) || '5.95'}`,
-          turnaround: deliveryDate 
-            ? `Delivery by ${formatDeliveryDate(deliveryDate)} (${optionType})`
-            : '3 - 5 working days',
-          carrierService: selectedOption.fullName,
-          deliveryWindow: { from: selectedOption.from, to: selectedOption.to }  // ✅ Create delivery object
-        };
-      }
-      return option;
-    })
-  );
-};
-
-// 🎯 FUTURE ENHANCEMENT: Create multiple standard options for user choice
-// Uncomment this section if you want to show both fastest and cheapest as separate options
-/*
-const createMultipleStandardOptions = (fastestOption, cheapestOption) => {
-  const standardOptions = [];
-  
-  // Add fastest option
-  if (fastestOption) {
-    const deliveryDate = fastestOption.delivery?.to;
-    standardOptions.push({
-      id: 'standard-fastest',
-      title: 'Standard delivery (Fastest)',
-      turnaround: deliveryDate 
-        ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
-        : '3 - 5 working days',
-      price: `£${fastestOption.shippingCost?.toFixed(2) || '5.95'}`,
-      bookingCode: fastestOption.carrierServiceCode,
-      fullBookingCode: fastestOption.bookingCode,
-      carrierService: fastestOption.fullName,
-      deliveryWindow: fastestOption.delivery,
-      optionType: 'fastest'
-    });
-  }
-  
-  // Add cheapest option (if different from fastest)
-  if (cheapestOption && cheapestOption.bookingCode !== fastestOption?.bookingCode) {
-    const deliveryDate = cheapestOption.delivery?.to;
-    standardOptions.push({
-      id: 'standard-cheapest',
-      title: 'Standard delivery (Cheapest)',
-      turnaround: deliveryDate 
-        ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
-        : '3 - 5 working days',
-      price: `£${cheapestOption.shippingCost?.toFixed(2) || '5.95'}`,
-      bookingCode: cheapestOption.carrierServiceCode,
-      fullBookingCode: cheapestOption.bookingCode,
-      carrierService: cheapestOption.fullName,
-      deliveryWindow: cheapestOption.delivery,
-      optionType: 'cheapest'
-    });
-  }
-  
-  return standardOptions;
-};
-*/
-
-  function getDeliveryWindow({ from, to }) {
-    if (!from || !to) return '';
-    const fromDate = new Date(from).toLocaleDateString();
-    const toDate = new Date(to).toLocaleDateString();
-    return `Estimated: ${fromDate} – ${toDate}`;
-  }
-
-  function getPriceLabel(groupCode) {
-    switch (groupCode.toUpperCase()) {
-      case 'STANDARD':
-        return '£5.95';
-      case 'NOMINATED':
-        return 'From £8.95';
-      case 'NEXTDAY':
-        return 'From £10.95';
-      default:
-        return '£6.95';
-    }
-  }
 
   const paymentMethods = [
     { id: 'credit-card', title: 'Credit card' },
