@@ -394,12 +394,30 @@ const [formData, setFormData] = useState({
     setSelectedDate(null);
     setPudoOptions([]);
     setSelectedPudoOption(null);
-  } else {
+  } 
+},  [
+  formData.email_address,
+  formData.first_name,
+  formData.last_name,
+  formData.company_name,
+  formData.firstLine_address,
+  formData.city,
+  formData.country,
+  formData.post_code,
+  formData.phone_number  // Add phone back to form validation
+]);
+
+useEffect(() => {
+  // When postcode changes, fetch delivery options for both standard and nominated
+  if (formData.post_code && formData.post_code.length >= 5) {
+    console.log('Postcode changed, fetching delivery options for:', formData.post_code);
+    
+    // Fetch ALL delivery options when postcode changes
     fetchStandardDeliveryOptions();
-    fetchNextDayOptions();
-    fetchNominatedDays();
+    fetchNextDayOptions();        // ✅ ADD THIS LINE
+    fetchNominatedDays();         // ✅ ADD THIS LINE
   }
-}, [formData]);
+}, [formData.post_code]);
 
 
   // Delivery sub-options 
@@ -1048,23 +1066,6 @@ const fetchStandardDeliveryOptions = async () => {
 
   const router = useRouter()
   
-
-useEffect(() => {
-  // When postcode changes, fetch delivery options for both standard and nominated
-  if (formData.post_code && formData.post_code.length >= 5) {
-    console.log('Postcode changed, fetching delivery options for:', formData.post_code);
-    
-    // Fetch standard delivery options
-    fetchStandardDeliveryOptions();
-    
-    // If nominated day is selected, also refresh nominated options
-    if (selectedDeliverySubOption?.id === 'nominated') {
-      fetchNominatedDays();
-    }
-  }
-}, [formData.post_code, selectedDeliverySubOption]);
-
-
   const handleChange = (inputEvent) => {
   const { name, value } = inputEvent.target
   setFormData((prevFormData) => ({ ...prevFormData, [name]: value }))
