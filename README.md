@@ -344,7 +344,6 @@ This project is private and proprietary to maison-metapack Fashion, a subsidiary
 ## 📞 Support
 
 For technical support and inquiries:
-- **Email**: [support@maison-metapack.com](mailto:support@maison-metapack.com)
 - **Phone**: +44 203 9688 022
 - **Developer**: [MarcosoTech](https://marcosotech.com)
 
