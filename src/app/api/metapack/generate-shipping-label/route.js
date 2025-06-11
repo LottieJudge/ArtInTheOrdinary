@@ -10,8 +10,7 @@ export async function POST(req) {
     console.log('METAPACK_SAPI_BASIC_AUTH first 20 chars:', process.env.METAPACK_SAPI_BASIC_AUTH?.substring(0, 20));
     console.log('All env keys containing METAPACK:', Object.keys(process.env).filter(key => key.includes('METAPACK')));
     
-    const body = await req.json();
-    console.log('Production debug - Request body received:', JSON.stringify(body, null, 2));
+    
     const body = await req.json();
     console.log('Production debug - Request body received:', JSON.stringify(body, null, 2));
 
