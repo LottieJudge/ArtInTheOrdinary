@@ -2,6 +2,16 @@
 
 export async function POST(req) {
   try {
+
+    console.log('=== PRODUCTION ENV VARIABLES DEBUG ===');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('METAPACK_SAPI_BASIC_AUTH exists:', !!process.env.METAPACK_SAPI_BASIC_AUTH);
+    console.log('METAPACK_SAPI_BASIC_AUTH length:', process.env.METAPACK_SAPI_BASIC_AUTH?.length);
+    console.log('METAPACK_SAPI_BASIC_AUTH first 20 chars:', process.env.METAPACK_SAPI_BASIC_AUTH?.substring(0, 20));
+    console.log('All env keys containing METAPACK:', Object.keys(process.env).filter(key => key.includes('METAPACK')));
+    
+    const body = await req.json();
+    console.log('Production debug - Request body received:', JSON.stringify(body, null, 2));
     const body = await req.json();
     console.log('Production debug - Request body received:', JSON.stringify(body, null, 2));
 
