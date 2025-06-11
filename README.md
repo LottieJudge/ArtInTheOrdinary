@@ -311,7 +311,7 @@ git push origin main
 3. Verify API key has necessary permissions
 
 **Supabase Connection Issues:**
-1. Verify project URL and keys
+1. Verify project URL, keys and variables 
 2. Check RLS (Row Level Security) policies
 3. Confirm network connectivity
 
