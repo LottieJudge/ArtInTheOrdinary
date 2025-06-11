@@ -898,7 +898,36 @@ const getNext14Days = (deliveryWindows = []) => {
     fetchDeliveryOptions();
 }, [formData.country]);
 
-  // Fetch Delivery Options
+ // helper function for order submission validation 
+
+ const isDeliverySelectionComplete = () => {
+  // If showing delivery sub-options, user must select one
+  if (showDeliverySubOptions && !selectedDeliverySubOption) {
+    return false;
+  }
+  
+  // If showing calendar (nominated day), user must select a date
+  if (showCalendar && !selectedDate) {
+    return false;
+  }
+  
+  // If showing collection search, user must select a PUDO option
+  if (showCollectionSearch && !selectedPudoOption) {
+    return false;
+  }
+  
+  // If showing click & collect, user must select a location (but since they're all unavailable, this will be false)
+  if (showClickCollect && !selectedClickCollectLocation) {
+    return false;
+  }
+  
+  // If no delivery method is selected at all
+  if (!selectedDeliveryMethod) {
+    return false;
+  }
+  
+  return true;
+};
 
   // Format delivery date for display
 function formatDeliveryDate(dateString) {
@@ -2064,13 +2093,14 @@ const fetchStandardDeliveryOptions = async () => {
                   <button
                     type="submit"
                     disabled={
-                      isLoadingDeliveryOptions || 
+                      isLoadingDeliveryOptions ||
+                      !isDeliverySelectionComplete() || 
                       !consentCheckboxes.privacyPolicy ||
                       showClickCollect ||
                       isSubmittingOrder
                     }
                     className={`w-full rounded-md border border-transparent ${
-                      isLoadingDeliveryOptions || !consentCheckboxes.privacyPolicy || showClickCollect || isSubmittingOrder
+                      isLoadingDeliveryOptions || !isDeliverySelectionComplete() || !consentCheckboxes.privacyPolicy || showClickCollect || isSubmittingOrder
                         ? 'bg-gray-400 cursor-not-allowed' 
                         : 'bg-black hover:bg-white hover:text-black hover:border-black'
                     } px-4 py-3 text-base font-medium text-white shadow-xs  focus:ring-black focus:ring-1 focus:ring-offset-0 focus:outline-hidden`}
@@ -2079,6 +2109,8 @@ const fetchStandardDeliveryOptions = async () => {
                       ? 'Processing order...'           // When submitting the order
                       : isLoadingDeliveryOptions        // When loading delivery data  
                         ? 'Loading delivery options...' 
+                        : !isDeliverySelectionComplete() // When delivery selection is incomplete
+                          ? 'Please select a delivery option'
                         : !consentCheckboxes.privacyPolicy
                           ? 'Please accept privacy policy to continue'
                           : showClickCollect
