@@ -394,8 +394,12 @@ const [formData, setFormData] = useState({
     setSelectedDate(null);
     setPudoOptions([]);
     setSelectedPudoOption(null);
-  } 
-},  [formData]);
+  } else {
+    setSelectedDeliverySubOption(null);
+    setShowCalendar(false);
+    setSelectedDate(null);
+  }
+ }, [formData]);
 
 useEffect(() => {
   // When postcode OR country changes, fetch delivery options
@@ -404,12 +408,15 @@ useEffect(() => {
       postcode: formData.post_code,
       country: formData.country
     });
+
+ 
+   setAvailableDates([]);
     
     fetchStandardDeliveryOptions();
     fetchNextDayOptions();       
     fetchNominatedDays();         
   }
-}, [formData.post_code, formData.country]); // ✅ ADD COUNTRY HERE
+}, [formData.post_code, formData.country]); 
 
 
   // Delivery sub-options 
@@ -685,10 +692,12 @@ useEffect(() => {
 };
 
   const fetchNominatedDays = async () => {
+    console.log('🔍 fetchNominatedDays called for postcode:', formData.post_code);
   try {
     
     setIsLoadingDeliveryOptions(true);
     setIsDeliveryDataReady(false);
+
     // Use the customer's postcode from the form, fallback to default
     const customerPostcode = formData.post_code || 'E20 2ST';
     const customerCountry = formData.country || 'United Kingdom';
@@ -708,19 +717,22 @@ useEffect(() => {
     const nominatedPrice = firstNominatedOption.shippingCost || 8.95;
 
     setDeliverySubOptions(prevOptions => 
-        prevOptions.map(option => {
-          if (option.id === 'nominated') {
-            return {
-              ...option,
-              price: `£${nominatedPrice.toFixed(2)}`, // ✅ USE REAL PRICE
-              bookingCode: firstNominatedOption.carrierServiceCode,
-              fullBookingCode: firstNominatedOption.bookingCode,
-              carrierService: firstNominatedOption.fullName
-            };
-          }
-          return option;
-        })
-      );
+  prevOptions.map(option => {
+    if (option.id === 'nominated') {
+      return {
+        ...option,
+        turnaround: "Choose a day that suits you", // ✅ RESET TO DEFAULT MESSAGE
+        price: `£${nominatedPrice.toFixed(2)}`, // ✅ USE REAL PRICE
+        loading: false, // ✅ CLEAR LOADING STATE
+        disabled: false, // ✅ ENSURE IT'S ENABLED
+        bookingCode: firstNominatedOption.carrierServiceCode,
+        fullBookingCode: firstNominatedOption.bookingCode,
+        carrierService: firstNominatedOption.fullName
+      };
+    }
+    return option;
+  })
+);
 
       // Convert nominated options to the format expected by getNext14Days
       const deliveryWindows = data.nominatedOptions.map(option => ({
@@ -956,32 +968,24 @@ const fetchStandardDeliveryOptions = async () => {
     
     const data = await response.json();
     console.log('Standard delivery API response:', data);
-    
-    console.log('Standard delivery API response:', data);
-
-    console.log('Raw API response structure:', {
-      hasStandardOptions: !!data.standardOptions,
-      standardOptionsLength: data.standardOptions?.length || 0,
-      firstOption: data.standardOptions?.[0] || 'No options'
-    });
 
     if (!data.standardOptions || data.standardOptions.length === 0) {
       console.log('No standard delivery options available');
-
+      
       setDeliverySubOptions(prevOptions => 
-    prevOptions.map(option => {
-      if (option.id === 'standard') {
-        return {
-          ...option,
-          turnaround: 'Not available for your location',
-          price: 'N/A',
-          disabled: true,
-          loading: false
-        };
-      }
-      return option;
-    })
-  );
+        prevOptions.map(option => {
+          if (option.id === 'standard') {
+            return {
+              ...option,
+              turnaround: 'Not available for your location',
+              price: 'N/A',
+              disabled: true,
+              loading: false
+            };
+          }
+          return option;
+        })
+      );
       return;
     }
 
@@ -989,30 +993,13 @@ const fetchStandardDeliveryOptions = async () => {
       console.log('=== DELIVERY DATA EXTRACTION ===');
       
       data.standardOptions.forEach((option, index) => {
-        console.log(`Option ${index + 1}:`, {
-          carrierService: option.fullName,
-          deliveryDateRange: {
-            from: option.from,
-            to: option.to,
-            formatted: option.delivery?.to ? new Date(option.delivery.to).toLocaleDateString('en-GB', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            }) : 'No date available'
-          },
-          cost: {
-            raw: option.shippingCost,
-            formatted: `£${option.shippingCost?.toFixed(2) || '0.00'}`
-          },
-          bookingCode: option.bookingCode
-        });
+        console.log(`Option ${index + 1}:`, option);
       });
     
       // Find the fastest delivery option (earliest delivery date)
       const fastestOption = data.standardOptions.reduce((prev, current) => {
-        const prevDate = new Date(prev.to || '2099-12-31');        // ✅ Use .to directly
-        const currentDate = new Date(current.to || '2099-12-31');  // ✅ Use .to directly
+        const prevDate = new Date(prev.to || '2099-12-31');        
+        const currentDate = new Date(current.to || '2099-12-31');  
         return currentDate < prevDate ? current : prev;
       });
       
@@ -1026,33 +1013,20 @@ const fetchStandardDeliveryOptions = async () => {
       console.log('Delivery options analysis:', {
         fastest: {
           service: fastestOption.fullName,
-          deliveryDate: fastestOption.delivery?.to,
+          deliveryDate: fastestOption.to, // ✅ CHANGED FROM fastestOption.delivery?.to
           cost: fastestOption.shippingCost
         },
         cheapest: {
           service: cheapestOption.fullName,
-          deliveryDate: cheapestOption.delivery?.to,
+          deliveryDate: cheapestOption.to, // ✅ CHANGED FROM cheapestOption.delivery?.to
           cost: cheapestOption.shippingCost
         }
       });
 
       // CONFIGURATION: Choose which option to use (easily switchable)
       const selectedOption = fastestOption;
-      const optionType = 'fastest';
-
-      console.log('🔍 DEBUG - selectedOption structure:', {
-        fullSelectedOption: selectedOption,
-        hasDelivery: !!selectedOption.delivery,
-        deliveryObject: selectedOption.delivery,
-        deliveryTo: selectedOption.delivery?.to,
-        deliveryFrom: selectedOption.delivery?.from,
-        // ADD THESE NEW LINES TO SEE THE FULL STRUCTURE:
-        allKeys: Object.keys(selectedOption),
-        fullStructure: JSON.stringify(selectedOption, null, 2)
-});
-
       
-      const deliveryDate = selectedOption.to;
+      const deliveryDate = selectedOption.to; // ✅ CHANGED FROM selectedOption.delivery?.to
       
       console.log('BEFORE UPDATE - About to update delivery sub-option:', {
         deliveryDate,
@@ -1072,7 +1046,9 @@ const fetchStandardDeliveryOptions = async () => {
                 ? `Delivery by ${formatDeliveryDate(deliveryDate)}`
                 : '3 - 5 working days',
               carrierService: selectedOption.fullName,
-              deliveryWindow: selectedOption.delivery,
+              deliveryWindow: { from: selectedOption.from, to: selectedOption.to }, // ✅ FIXED STRUCTURE
+              loading: false, // ✅ ADD THIS
+              disabled: false, // ✅ ADD THIS
               _fastestOption: fastestOption,
               _cheapestOption: cheapestOption
             };
@@ -1081,16 +1057,32 @@ const fetchStandardDeliveryOptions = async () => {
         })
       );
       
-      console.log(`Updated standard delivery with ${optionType} option:`, {
+      console.log(`Updated standard delivery with fastest option:`, {
         service: selectedOption.fullName,
-        deliveryDate: selectedOption.delivery?.to,
-        formatted: formatDeliveryDate(selectedOption.delivery?.to),
+        deliveryDate: selectedOption.to, // ✅ CHANGED FROM selectedOption.delivery?.to
+        formatted: formatDeliveryDate(selectedOption.to), // ✅ CHANGED FROM selectedOption.delivery?.to
         cost: selectedOption.shippingCost
       });
-    } // ADD THIS CLOSING BRACE FOR THE INNER IF STATEMENT
+    }
     
   } catch (error) {
     console.error('Error fetching standard delivery options:', error);
+    
+    // ✅ ADD ERROR HANDLING
+    setDeliverySubOptions(prevOptions => 
+      prevOptions.map(option => {
+        if (option.id === 'standard') {
+          return {
+            ...option,
+            turnaround: 'Error loading',
+            price: 'N/A',
+            loading: false,
+            disabled: true
+          };
+        }
+        return option;
+      })
+    );
   }
 };
 

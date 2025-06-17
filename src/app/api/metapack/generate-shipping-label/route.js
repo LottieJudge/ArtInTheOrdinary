@@ -105,7 +105,7 @@ export async function POST(req) {
             },
         recipient: {
           addressLine1: firstLine_address,
-          addressLine2: house_apartment_number,
+          addressLine2: house_apartment_number || "N/A",
           postCode: post_code,
           countryCode: countryMap[country] || "GBR",
           companyName: company_name,
