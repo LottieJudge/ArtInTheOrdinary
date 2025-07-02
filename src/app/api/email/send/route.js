@@ -8,7 +8,7 @@ export async function POST(request) {
     const { to, subject, data } = await request.json();
     console.log('Sending email to:', to);
     const { data: emailData, error } = await resend.emails.send({
-      from: 'Maison Metapack <noreply@maisonmetapack.com>',
+      from: 'Art In The Ordinary <noreply@aito.com>',
       to: [to],
       subject: subject,
       react: OrderConfirmationEmail({ ...data })
