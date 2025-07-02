@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
   if (!product) return {};
   return {
     title: product.name,
-    description: `Buy the ${product.name} at Maison Metapack.`,
+    description: `Buy the ${product.name} at Art in the Ordinary.`,
   };
 }
 
