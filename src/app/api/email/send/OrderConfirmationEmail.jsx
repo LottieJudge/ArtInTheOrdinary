@@ -33,17 +33,17 @@ export const OrderConfirmationEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Your Maison Metapack order confirmation</Preview>
+      <Preview>Your Art In The Ordinary order confirmation</Preview>
       <Body style={main}>
         <Container style={headerContainer}>
           <Img
-            src="https://res.cloudinary.com/dzkf4iwrf/image/upload/v1748871822/mmlogo_aunz31.png"
-            alt="Metapack Logo"
+            src='REPLACE WITH AITO LOGO'
+            alt="Art In The Ordinary Logo"
             width="180"
             style={logo}
           />
           <Text style={tagline}>
-            The home of delivery
+            
           </Text>
         </Container>
 
@@ -78,27 +78,23 @@ export const OrderConfirmationEmail = ({
 
           <Container style={valueProp}>
             <Text style={valuePropText}>
-            This experience is powered by <strong>Metapack</strong> – the enterprise-grade delivery management platform used by the world's leading brands, such as H&M, John Lewis, and Mountain Warehouse, to name a few.
+                REPLACE WITH AITO STUFF 
               <br /><br />
-              From intelligent checkout delivery options to real-time tracking and post-purchase 
-              insights, Metapack helps ensure every order arrives exactly how and when it should.
               <br /><br />
-              <strong>Performance, reliability, and scale.</strong><br />
-              Over 1 billion parcels shipped annually, supported by 350+ global carriers, 
-              99.9% platform uptime, and decades of delivery expertise.
+      
             </Text>
           </Container>
 
           <Container style={resources}>
-            <Text style={resourcesHeading}>Explore how Metapack can elevate your end-to-end customer delivery experience:</Text>
+            <Text style={resourcesHeading}></Text>
             <ul style={resourcesList}>
               <li>
-                <Link style={link} href="https://auctane.share.mindtickle.com/room/9d3452c8-c96f-48c9-9f2b-509af52b5bb8">
+                <Link style={link} href="">
                   Learn More
                 </Link>
               </li>
               <li>
-                <Link style={link} href="https://www.metapack.com/form/">
+                <Link style={link} href="">
                   Contact Us
                 </Link>
               </li>
@@ -108,8 +104,8 @@ export const OrderConfirmationEmail = ({
         
         <Container style={footer}>
           <Img
-            src="https://res.cloudinary.com/dzkf4iwrf/image/upload/v1748546735/metapackLogo_kjkipm.png"
-            alt="Metapack Logo"
+            src="g"
+            alt="aiTO Logo"
             width="140"
             style={footerLogo}
           />
@@ -119,12 +115,12 @@ export const OrderConfirmationEmail = ({
           <Text>
             <strong>Opting Out:</strong>
             <br></br>
-            You can ask us or third parties to stop sending you marketing messages at any time by following the opt-out links on any marketing message sent to you or by contacting us at <Link style={link} href="mailto:dataprotection@metapack.com">dataprotection@metapack.com</Link> at any time.
+            You can ask us or third parties to stop sending you marketing messages at any time by following the opt-out links on any marketing message sent to you or by contacting us at <Link style={link} href="">AITO EMAIL HERE</Link> at any time.
           </Text>
           <br></br>
           <br></br>
           <Text style={copyright}>
-            © {today.getFullYear()} Metapack. All rights reserved.
+            © {today.getFullYear()} Art In The Ordinary. All rights reserved.
           </Text>
         </Container>
       </Body>
