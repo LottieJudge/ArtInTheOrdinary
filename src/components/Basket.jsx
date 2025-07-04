@@ -93,34 +93,21 @@ import Image from 'next/image'
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="flex items-center text-sm text-gray-600">
-                    <span>Shipping estimate</span>
+                    <span>Shipping</span>
                     <div className="relative ml-2 group">
                           <button 
                               type="button"
                               className="shrink-0 text-gray-400 hover:text-gray-500"
                           >
-                              <span className="sr-only">Powered by Metapack</span>
                               <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
                           </button>
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
-                              Powered by Metapack
                               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                           </div>
                       </div>
                     </dt>
                     <dd className="text-sm font-medium text-gray-900">£{shipping.toFixed(2)}</dd>
                 </div>
-                {/* removed tax section because not applicaple for UK markets */}
-                {/* <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                    <dt className="flex text-sm text-gray-600">
-                    <span>Tax estimate</span>
-                    <a href="#" className="ml-2 shrink-0 text-gray-400 hover:text-gray-500">
-                        <span className="sr-only">Learn more about how tax is calculated</span>
-                        <QuestionMarkCircleIcon aria-hidden="true" className="size-5" />
-                    </a>
-                    </dt>
-                    <dd className="text-sm font-medium text-gray-900">£{tax.toFixed(2)}</dd>
-                </div> */}
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                     <dt className="text-base font-medium text-gray-900">Order total</dt>
                     <dd className="text-base font-medium text-gray-900">£{total.toFixed(2)}</dd>
