@@ -1040,47 +1040,10 @@ const [formData, setFormData] = useState({
                 </div>
               </dl>
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
-{/* Consent Checkboxes */}
-  <div className="space-y-4 mb-6">
-    {/* Marketing Consent */}
-    <div className="flex items-start">
-      <div className="flex items-center h-5">
-        <input
-          id="marketing-consent"
-          name="marketing-consent"
-          type="checkbox"
-          checked={consentCheckboxes.marketing}
-          onChange={() => handleConsentChange('marketing')}
-          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black focus:ring-2"
-        />
-      </div>
-      <div className="ml-3">
-        <label htmlFor="marketing-consent" className="text-sm text-gray-700">
-          I agree that Auctane Limited may use my personal data for third-party marketing purposes, as described in the{' '}
-          <a 
-            href="/privacy-policy" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-black underline hover:text-gray-700"
-          >
-            Privacy Policy
-          </a>
-          .
-        </label>
-        <p className="text-xs text-gray-500 mt-1">
-          You can withdraw your consent at any time by contacting us at{' '}
-          <a 
-            href="mailto:CHANGE" 
-            className="text-black underline hover:text-gray-700"
-          >
-            info@AITO.com
-          </a>
-          {' '}or by following the unsubscribe link in our emails.
-        </p>
       </div>
     </div>
 
-    {/* Privacy Policy Consent */}
+    {/* Privacy Policy Consent - keep */}
     <div className="flex items-start">
       <div className="flex items-center h-5">
         <input
@@ -1107,7 +1070,7 @@ const [formData, setFormData] = useState({
         </label>
       </div>
     </div>
-  </div>
+           </div>
 
                   <button
                     type="submit"
