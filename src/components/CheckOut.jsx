@@ -155,12 +155,7 @@ const [formData, setFormData] = useState({
     alert('Please select a delivery option.');
     return;
   }
-    // Check if delivery data is still loading
-  if (isLoadingDeliveryOptions) {
-    console.log('Please wait, delivery options are still loading...');
-    return;
-  }
-    
+
     try {
       let bookingCodeToSend;
       
@@ -451,21 +446,6 @@ const [formData, setFormData] = useState({
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label htmlFor="house_apartment_number" className="block text-sm/6 font-medium text-gray-700">
-                    Apartment, suite
-                  </label>
-                  <div className="mt-2">
-                    <input
-                      id="house_apartment_number"
-                      name="house_apartment_number"
-                      type="text"
-                      value={formData.house_apartment_number}
-                      onChange={handleChange}
-                      className="block w-full rounded-md bg-white px-3 py-2 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-black sm:text-sm/6"
-                    />
-                  </div>
-                </div>
 
                 <div>
                   <label htmlFor="city" className="block text-sm/6 font-medium text-gray-700">
@@ -577,12 +557,12 @@ const [formData, setFormData] = useState({
                      <Radio
     key={deliveryMethod.id}
     value={deliveryMethod}
-    disabled={deliveryMethod.disabled} // ✅ ADD DISABLED PROP
+    disabled={deliveryMethod.disabled} 
     aria-label={deliveryMethod.title}
     aria-description={`${deliveryMethod.turnaround} for ${deliveryMethod.price}`}
     className={`group relative flex rounded-lg border p-4 shadow-xs focus:outline-hidden data-checked:border-transparent data-focus:ring-2 data-focus:ring-indigo-500 ${
       deliveryMethod.unavailable 
-        ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-75' // ✅ GREY STYLING
+        ? 'cursor-not-allowed bg-gray-100 border-gray-200 opacity-75' 
         : 'cursor-pointer bg-white border-gray-300'
     }`}
   >
