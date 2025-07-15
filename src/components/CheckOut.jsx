@@ -591,11 +591,11 @@ const [formData, setFormData] = useState({
         className="size-5 text-[#303efaff] group-not-data-checked:hidden"
       />
     )}
-    <span
+     <span
       aria-hidden="true"
       className="pointer-events-none absolute -inset-px rounded-lg border-2 border-transparent group-data-checked:border-black group-data-focus:border"
     />
-  </Radio>
+          </Radio>
                   ))}
                 </RadioGroup>
 
@@ -1042,35 +1042,7 @@ const [formData, setFormData] = useState({
               <div className="border-t border-gray-200 px-4 py-6 sm:px-6">
       </div>
     </div>
-
-    {/* Privacy Policy Consent - keep
-    <div className="flex items-start">
-      <div className="flex items-center h-5">
-        <input
-          id="privacy-policy-consent"
-          name="privacy-policy-consent"
-          type="checkbox"
-          checked={consentCheckboxes.privacyPolicy}
-          onChange={() => handleConsentChange('privacyPolicy')}
-          className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black focus:ring-2"
-        />
-      </div>
-      <div className="ml-3">
-        <label htmlFor="privacy-policy-consent" className="text-sm text-gray-700">
-          I have read and accept the{' '}
-          <a 
-            href="/privacy-policy" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-black underline hover:text-gray-700"
-          >
-            Privacy Policy
-          </a>
-          , which explains how my personal data will be used and my rights under data protection law.
-        </label>
-      </div>
-    </div> */}
-           </div>
+        
 
                   <button
                     type="submit"
@@ -1102,9 +1074,7 @@ const [formData, setFormData] = useState({
                   </button>
               </div>
             </div>
-          </div>
         </form>
-      </div>
-    </div>
+        </div>  
   )
 }
