@@ -1070,10 +1070,10 @@ const [formData, setFormData] = useState({
         <p className="text-xs text-gray-500 mt-1">
           You can withdraw your consent at any time by contacting us at{' '}
           <a 
-            href="mailto:dataprotection@metapack.com" 
+            href="mailto:CHANGE" 
             className="text-black underline hover:text-gray-700"
           >
-            dataprotection@metapack.com
+            info@AITO.com
           </a>
           {' '}or by following the unsubscribe link in our emails.
         </p>
