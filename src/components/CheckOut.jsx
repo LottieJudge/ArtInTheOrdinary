@@ -1043,7 +1043,7 @@ const [formData, setFormData] = useState({
       </div>
     </div>
 
-    {/* Privacy Policy Consent - keep */}
+    {/* Privacy Policy Consent - keep
     <div className="flex items-start">
       <div className="flex items-center h-5">
         <input
@@ -1069,7 +1069,7 @@ const [formData, setFormData] = useState({
           , which explains how my personal data will be used and my rights under data protection law.
         </label>
       </div>
-    </div>
+    </div> */}
            </div>
 
                   <button
